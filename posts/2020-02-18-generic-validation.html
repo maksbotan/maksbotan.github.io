@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="viewport" content="width=device-width" />
+        <meta http-equiv="Cache-Control" content="max-age=86400, must-revalidate" />
+        <title>Maxim Koltsov blog</title>
+        <script src="../css/jquery.js"></script>
+        <script src="../css/selectfile.js"></script>
+        <script src="https://kit.fontawesome.com/88006d875d.js" crossorigin="anonymous"></script>
+        <link rel="stylesheet" type="text/css" title="hakyll_theme" href="../css/theprofessional.css" />
+        <link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+    </head>
+    <body>
+      <div class="highbar">&nbsp;</div>
+        <div id="header">
+          <div class="box">
+            <div id="logo" class="name">
+              <h2><a href="../">Maxim Koltsov</a></h2>
+            </div>
+            <div id="navigation" class="pageslinks">
+              <nav class="menuNav">
+                <div class="menuItems">
+                <a href="../" class="posts/2020-02-18-generic-validation.md">Home</a>
+                <a href="../about.html" class="posts/2020-02-18-generic-validation.md">About</a>
+                <a href="../contact.html" class="posts/2020-02-18-generic-validation.md">Contact</a>
+                <a href="../archive.html" class="posts/2020-02-18-generic-validation.md">Posts</a>
+                </div>
+              </nav>
+            </div>
+        </div>
+        </div>
+        <div class="container-gallery">
+        <div id="content" class="inside">
+            <div class="info">
+    Posted on February 18, 2020
+    
+</div>
+
+<h2 id="tldr">TLDR</h2>
+<p>This technique helps validate arbitrary conditions in deeply nested structures without writing additional code — with the help of Haskell Generics.</p>
+<p>It boils down to this pattern:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell ignore"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1"></a><span class="ot">validate ::</span> a <span class="dt">'Raw</span> <span class="ot">-&gt;</span> <span class="dt">Validation</span> (<span class="dt">ErrorMap</span> es) (a <span class="dt">'Valid</span>)</span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="ot">getError ::</span> <span class="dt">HasError</span> e es <span class="ot">=&gt;</span> <span class="dt">ErrorMap</span> es <span class="ot">-&gt;</span> e</span></code></pre></div>
+<p>If you are interested in how to achieve this, read on.</p>
+<h2 id="introduction">Introduction</h2>
+<p>Say you are developing a REST API that accepts some business-data in JSON. Of course, this data must be checked for correctness. There are actually three levels to this:</p>
+<ul>
+<li>Correctness of JSON <em>syntax</em> — i.e. quotes, brackets and so on;</li>
+<li>Correctness of JSON <em>schema</em> — i.e. objects with required fields, arrays of a required item type;</li>
+<li>Correctness of <em>data itself</em> — constraints like “this number should be positive” or “this string should have exactly these possible values”, that are not expressible in JSON specification alone.</li>
+</ul>
+<p>The first two levels are already handled by <code>aeson</code> library and its <code>FromJSON</code> typeclass. How could we incorporate third one there as well?</p>
+<p>Let’s focus on a simple constraint: positive integers. We could define a newtype with a <code>FromJSON</code> instance like this:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell ignore"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">newtype</span> <span class="dt">PositiveInt</span> <span class="ot">=</span> <span class="dt">PositiveInt</span> <span class="dt">Int</span> <span class="kw">deriving</span> (<span class="dt">Eq</span>, <span class="dt">Show</span>)</span>
+<span id="cb2-2"><a href="#cb2-2"></a></span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="kw">instance</span> <span class="dt">FromJSON</span> <span class="dt">PositiveInt</span> <span class="kw">where</span></span>
+<span id="cb2-4"><a href="#cb2-4"></a>  parseJSON v <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb2-5"><a href="#cb2-5"></a>    n <span class="ot">&lt;-</span> parseJSON v</span>
+<span id="cb2-6"><a href="#cb2-6"></a>    <span class="kw">if</span> n <span class="op">&gt;</span> <span class="dv">0</span></span>
+<span id="cb2-7"><a href="#cb2-7"></a>      <span class="kw">then</span> <span class="fu">pure</span> <span class="op">$</span> <span class="dt">PositiveInt</span> n</span>
+<span id="cb2-8"><a href="#cb2-8"></a>      <span class="kw">else</span> <span class="fu">fail</span> <span class="st">&quot;Expected positive integer!&quot;</span></span></code></pre></div>
+<p>Here we offload all work to existing <code>Int</code> parser and then check its result.</p>
+<p>At first glance, we’re good. However, let’s look at the error message in case there are two <code>PositiveInt</code>s in our business type:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell ignore"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">data</span> <span class="dt">Business</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a>  <span class="ot">=</span> <span class="dt">Business</span></span>
+<span id="cb3-3"><a href="#cb3-3"></a>      {<span class="ot"> foo ::</span> <span class="dt">PositiveInt</span></span>
+<span id="cb3-4"><a href="#cb3-4"></a>      ,<span class="ot"> bar ::</span> <span class="dt">PositiveInt</span></span>
+<span id="cb3-5"><a href="#cb3-5"></a>      ,<span class="ot"> baz ::</span> <span class="dt">String</span></span>
+<span id="cb3-6"><a href="#cb3-6"></a>      }</span>
+<span id="cb3-7"><a href="#cb3-7"></a>  <span class="kw">deriving</span> (<span class="dt">Eq</span>, <span class="dt">Show</span>, <span class="dt">Generic</span>)</span>
+<span id="cb3-8"><a href="#cb3-8"></a></span>
+<span id="cb3-9"><a href="#cb3-9"></a><span class="kw">instance</span> <span class="dt">FromJSON</span> <span class="dt">Business</span></span>
+<span id="cb3-10"><a href="#cb3-10"></a></span>
+<span id="cb3-11"><a href="#cb3-11"></a><span class="ot">wrong ::</span> <span class="dt">ByteString</span></span>
+<span id="cb3-12"><a href="#cb3-12"></a>wrong <span class="ot">=</span> <span class="st">&quot;{ \&quot;foo\&quot;: -42, \&quot;bar\&quot;: -256, \&quot;baz\&quot;: \&quot;noes\&quot; }&quot;</span></span></code></pre></div>
+<p>Now, what happens when we try to parse it?</p>
+<pre><code>λ&gt; eitherDecodeStrict @Business wrong 
+Left &quot;Error in $.foo: Expected positive integer!&quot;</code></pre>
+<p>We get an error, but it reports only the first field with a problem. There are two improvements we would like to make over this scenario:</p>
+<ul>
+<li>Collect all validation errors that are present in the data;</li>
+<li>Represent errors with something more structured than strings.</li>
+</ul>
+<p>In this post, I’ll present a possible solution that covers both these points and at the same time is sufficiently generic in both data and error types.</p>
+<h2 id="about-this-file">About this file</h2>
+<p><a href="https://github.com/maksbotan/maksbotan.github.io/tree/develop/posts/2020-02-18-generic-validation.lhs">This</a> is a literal Haskell file. Here’s how to load in GHCi (adapt for other build tools if not using stack):</p>
+<pre class="console"><code>$ stack ghci 2020-02-18-generic-validation.lhs \
+    --package markdown-unlit \
+    --package typerep-map \
+    --package validation \
+    --package containers \
+    --ghci-options='-pgmL markdown-unlit'</code></pre>
+<details class="code-details">
+<p><summary>Some extensions and imports</summary></p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1"></a><span class="ot">{-# LANGUAGE AllowAmbiguousTypes        #-}</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a><span class="ot">{-# LANGUAGE DataKinds                  #-}</span></span>
+<span id="cb6-3"><a href="#cb6-3"></a><span class="ot">{-# LANGUAGE DefaultSignatures          #-}</span></span>
+<span id="cb6-4"><a href="#cb6-4"></a><span class="ot">{-# LANGUAGE DeriveAnyClass             #-}</span></span>
+<span id="cb6-5"><a href="#cb6-5"></a><span class="ot">{-# LANGUAGE DeriveGeneric              #-}</span></span>
+<span id="cb6-6"><a href="#cb6-6"></a><span class="ot">{-# LANGUAGE FlexibleContexts           #-}</span></span>
+<span id="cb6-7"><a href="#cb6-7"></a><span class="ot">{-# LANGUAGE FlexibleInstances          #-}</span></span>
+<span id="cb6-8"><a href="#cb6-8"></a><span class="ot">{-# LANGUAGE FunctionalDependencies     #-}</span></span>
+<span id="cb6-9"><a href="#cb6-9"></a><span class="ot">{-# LANGUAGE GADTs                      #-}</span></span>
+<span id="cb6-10"><a href="#cb6-10"></a><span class="ot">{-# LANGUAGE GeneralizedNewtypeDeriving #-}</span></span>
+<span id="cb6-11"><a href="#cb6-11"></a><span class="ot">{-# LANGUAGE KindSignatures             #-}</span></span>
+<span id="cb6-12"><a href="#cb6-12"></a><span class="ot">{-# LANGUAGE MultiParamTypeClasses      #-}</span></span>
+<span id="cb6-13"><a href="#cb6-13"></a><span class="ot">{-# LANGUAGE PolyKinds                  #-}</span></span>
+<span id="cb6-14"><a href="#cb6-14"></a><span class="ot">{-# LANGUAGE ScopedTypeVariables        #-}</span></span>
+<span id="cb6-15"><a href="#cb6-15"></a><span class="ot">{-# LANGUAGE StandaloneDeriving         #-}</span></span>
+<span id="cb6-16"><a href="#cb6-16"></a><span class="ot">{-# LANGUAGE TypeApplications           #-}</span></span>
+<span id="cb6-17"><a href="#cb6-17"></a><span class="ot">{-# LANGUAGE TypeFamilies               #-}</span></span>
+<span id="cb6-18"><a href="#cb6-18"></a><span class="ot">{-# LANGUAGE TypeOperators              #-}</span></span>
+<span id="cb6-19"><a href="#cb6-19"></a><span class="ot">{-# LANGUAGE UndecidableInstances       #-}</span></span>
+<span id="cb6-20"><a href="#cb6-20"></a><span class="ot">{-# LANGUAGE UndecidableSuperClasses    #-}</span></span>
+<span id="cb6-21"><a href="#cb6-21"></a></span>
+<span id="cb6-22"><a href="#cb6-22"></a><span class="kw">module</span> <span class="dt">Validation</span> <span class="kw">where</span></span>
+<span id="cb6-23"><a href="#cb6-23"></a></span>
+<span id="cb6-24"><a href="#cb6-24"></a><span class="kw">import</span> <span class="dt">Data.Coerce</span>        (coerce)</span>
+<span id="cb6-25"><a href="#cb6-25"></a><span class="kw">import</span> <span class="dt">Data.Kind</span></span>
+<span id="cb6-26"><a href="#cb6-26"></a><span class="kw">import</span> <span class="dt">Data.Map.Strict</span>    (<span class="dt">Map</span>, singleton, unionWith)</span>
+<span id="cb6-27"><a href="#cb6-27"></a><span class="kw">import</span> <span class="dt">Data.Maybe</span>         (mapMaybe)</span>
+<span id="cb6-28"><a href="#cb6-28"></a><span class="kw">import</span> <span class="dt">Data.Proxy</span>         (<span class="dt">Proxy</span> (..))</span>
+<span id="cb6-29"><a href="#cb6-29"></a><span class="kw">import</span> <span class="dt">Data.Type.Bool</span></span>
+<span id="cb6-30"><a href="#cb6-30"></a><span class="kw">import</span> <span class="dt">Data.Type.Equality</span></span>
+<span id="cb6-31"><a href="#cb6-31"></a><span class="kw">import</span> <span class="dt">GHC.Generics</span></span>
+<span id="cb6-32"><a href="#cb6-32"></a><span class="kw">import</span> <span class="dt">GHC.TypeLits</span></span>
+<span id="cb6-33"><a href="#cb6-33"></a><span class="kw">import</span> <span class="dt">Type.Reflection</span>    (<span class="dt">Typeable</span>, typeRep)</span>
+<span id="cb6-34"><a href="#cb6-34"></a></span>
+<span id="cb6-35"><a href="#cb6-35"></a><span class="kw">import</span>           <span class="dt">Data.TMap</span>       (<span class="dt">TMap</span>)</span>
+<span id="cb6-36"><a href="#cb6-36"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.TMap</span>       <span class="kw">as</span> <span class="dt">TMap</span></span>
+<span id="cb6-37"><a href="#cb6-37"></a><span class="kw">import</span>           <span class="dt">Data.Validation</span> (<span class="dt">Validation</span> (..))</span></code></pre></div>
+</details>
+<h2 id="representation-of-the-validation-process">Representation of the validation process</h2>
+<p>The simplest way to represent validation would be to define a function like this one:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell ignore"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1"></a><span class="ot">validate ::</span> a <span class="ot">-&gt;</span> <span class="dt">Bool</span></span></code></pre></div>
+<p>It is obvious that this is not good Haskell — this function can’t guarantee that un-validated data is not passed to business-logic functions later on.</p>
+<p>Instead, we turn to the spirit of the great <a href="https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/">“Parse, don’t validate”</a> post. Following it, we must discriminate “raw” and “valid” data in our types. One obvious way is to use type-level tags through <code>DataKinds</code> mechanism:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">data</span> <span class="dt">Validity</span> <span class="ot">=</span> <span class="dt">Raw</span> <span class="op">|</span> <span class="dt">Valid</span></span></code></pre></div>
+<p>To store errors, we must embed our data into some <code>Functor</code>. To be able to collect errors from all locations independently we need an <code>Applicative</code>. Standard choice is <a href="http://hackage.haskell.org/package/validation-1.1/docs/Data-Validation.html"><code>Data.Validation</code></a>.</p>
+<p>So, assuming our errors are of some type <code>e</code>, we may write this type for validation function:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell ignore"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1"></a><span class="co">-- Here 'a' has kind &quot;Validity -&gt; Type&quot;.</span></span>
+<span id="cb9-2"><a href="#cb9-2"></a><span class="ot">validate ::</span> a <span class="dt">'Raw</span> <span class="ot">-&gt;</span> <span class="dt">Validation</span> e (a <span class="dt">'Valid</span>)</span></code></pre></div>
+<p>Therefore, if business logic only accepts <code>a 'Valid</code>, then code that glues transport layer and business layer would have to pattern-match on <code>Validation</code> constructors and do some error handling in case the data was invalid. This approach ensures that the business code never gets invalid data.</p>
+<p>But how do we choose this type “<code>e</code>”? As we are developing a generic mechanism, we would not like to limit user’s ability to use custom error types. Moreover, we would like to combine validations of different types in the same data type.</p>
+<p>It looks like our <code>e</code> has to store values of an arbitrary number of unknown types. There is a nice package that provides just that interface: <a href="http://hackage.haskell.org/package/typerep-map"><code>typerep-map</code></a>. We can use the <code>TMap</code> type defined there. It is a map whose keys are types and values are values of those types. In other words, it can map <code>Int</code> to <code>42</code>, <code>String</code> to <code>"foo"</code> and so on — all in one map.</p>
+<p>Next take on our <code>validate</code>:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell ignore"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1"></a><span class="ot">validate ::</span> a <span class="dt">'Raw</span> <span class="ot">-&gt;</span> <span class="dt">Validation</span> <span class="dt">TMap</span> (a <span class="dt">'Valid</span>)</span></code></pre></div>
+<p>There is still a problem — now we don’t know what types of errors the validation may produce, but that information should be perfectly recoverable from the type “<code>a</code>”.</p>
+<p>Let’s deal with this problem in two steps. First of all, we need to annotate the <code>TMap</code> with type-level tag of types that are actually 100% present in the map. For that we use a <code>newtype</code>:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">newtype</span> <span class="dt">ErrorMap</span> (<span class="ot">es ::</span> [<span class="dt">Type</span>]) <span class="ot">=</span> <span class="dt">ErrorMap</span> <span class="dt">TMap</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a>  <span class="kw">deriving</span> (<span class="dt">Show</span>)</span></code></pre></div>
+<p>Next, we define a type class for all things that can be validated:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell ignore"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">class</span> <span class="dt">Validable</span> (<span class="ot">es ::</span> [<span class="dt">Type</span>]) (<span class="ot">a ::</span> <span class="dt">Validity</span> <span class="ot">-&gt;</span> <span class="dt">Type</span>) <span class="op">|</span> a <span class="ot">-&gt;</span> es <span class="kw">where</span></span>
+<span id="cb12-2"><a href="#cb12-2"></a><span class="ot">  validate ::</span> a <span class="dt">'Raw</span> <span class="ot">-&gt;</span> <span class="dt">Validation</span> (<span class="dt">ErrorMap</span> es) (a <span class="dt">'Valid</span>)</span></code></pre></div>
+<p>The crucial moment here is the functional dependency “<code>a -&gt; es</code>”. It specifies that for every type <code>a</code> there is only one possible set of errors <code>es</code>. Using this information GHC will always be able to infer correct types just from the call to <code>validate</code>.</p>
+<p>A side note — to be able to use <code>Applicative</code> instance for <code>Validation</code> type, our <code>ErrorMap es</code> must have a <code>Semigroup</code> intance. And to write such an instance we require each <code>e</code> in <code>es</code> to be <code>Semigroup</code> as well. The code for the instance is not very interesting:</p>
+<details class="code-details">
+<p><summary>instance Semigroup (ErrorMap es)</summary></p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1"></a><span class="co">-- | Match the head of the list of error types and require it to be 'Semigroup' (to combine) and</span></span>
+<span id="cb13-2"><a href="#cb13-2"></a><span class="co">-- 'Typeable' (to be able to store in a 'TMap')</span></span>
+<span id="cb13-3"><a href="#cb13-3"></a><span class="kw">instance</span> (<span class="dt">Semigroup</span> (<span class="dt">ErrorMap</span> ts), <span class="dt">Semigroup</span> t, <span class="dt">Typeable</span> t) <span class="ot">=&gt;</span> <span class="dt">Semigroup</span> (<span class="dt">ErrorMap</span> (t '<span class="op">:</span> ts)) <span class="kw">where</span></span>
+<span id="cb13-4"><a href="#cb13-4"></a>  (<span class="op">&lt;&gt;</span>) (<span class="dt">ErrorMap</span> l) (<span class="dt">ErrorMap</span> r) <span class="ot">=</span> coerce <span class="op">$</span> (<span class="op">&lt;&gt;</span>) <span class="op">@</span>(<span class="dt">ErrorMap</span> ts) (coerce res) (coerce r)</span>
+<span id="cb13-5"><a href="#cb13-5"></a>    <span class="kw">where</span></span>
+<span id="cb13-6"><a href="#cb13-6"></a>      <span class="co">-- Here we combine the two values, always push the result into first argument and then</span></span>
+<span id="cb13-7"><a href="#cb13-7"></a>      <span class="co">-- recurse to the rest of types with the second argument unchanged.</span></span>
+<span id="cb13-8"><a href="#cb13-8"></a>      values <span class="ot">=</span> mapMaybe (TMap.lookup <span class="op">@</span>t) [l, r]</span>
+<span id="cb13-9"><a href="#cb13-9"></a>      <span class="co">-- We can't do just @foldr (&lt;&gt;) mempty values@ because we only have a Semigroup.</span></span>
+<span id="cb13-10"><a href="#cb13-10"></a>      res <span class="ot">=</span> <span class="kw">case</span> values <span class="kw">of</span></span>
+<span id="cb13-11"><a href="#cb13-11"></a>        [] <span class="ot">-&gt;</span> l</span>
+<span id="cb13-12"><a href="#cb13-12"></a>        (e<span class="op">:</span>[]) <span class="ot">-&gt;</span> TMap.insert e l</span>
+<span id="cb13-13"><a href="#cb13-13"></a>        (e1<span class="op">:</span>e2<span class="op">:</span>es) <span class="ot">-&gt;</span> TMap.insert (e1 <span class="op">&lt;&gt;</span> <span class="fu">foldl</span> (<span class="op">&lt;&gt;</span>) e2 es) l</span>
+<span id="cb13-14"><a href="#cb13-14"></a></span>
+<span id="cb13-15"><a href="#cb13-15"></a><span class="co">-- | Base case -- both maps should be empty here.</span></span>
+<span id="cb13-16"><a href="#cb13-16"></a><span class="kw">instance</span> <span class="dt">Semigroup</span> (<span class="dt">ErrorMap</span> '[]) <span class="kw">where</span></span>
+<span id="cb13-17"><a href="#cb13-17"></a>  (<span class="op">&lt;&gt;</span>) l _ <span class="ot">=</span> l</span></code></pre></div>
+</details>
+<p>And lastly, we need a function to extract one type of error from the map:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1"></a><span class="co">-- HasErrorC will be defined later.</span></span>
+<span id="cb14-2"><a href="#cb14-2"></a><span class="ot">getError ::</span> <span class="kw">forall</span> (<span class="ot">e ::</span> <span class="dt">Type</span>) (<span class="ot">es ::</span> [<span class="dt">Type</span>])<span class="op">.</span> (<span class="dt">Typeable</span> e, <span class="dt">HasErrorC</span> e es) <span class="ot">=&gt;</span> <span class="dt">ErrorMap</span> es <span class="ot">-&gt;</span> e</span>
+<span id="cb14-3"><a href="#cb14-3"></a>getError (<span class="dt">ErrorMap</span> em) <span class="ot">=</span></span>
+<span id="cb14-4"><a href="#cb14-4"></a>  <span class="kw">case</span> TMap.lookup <span class="op">@</span>e em <span class="kw">of</span></span>
+<span id="cb14-5"><a href="#cb14-5"></a>    <span class="dt">Just</span> x <span class="ot">-&gt;</span> x</span>
+<span id="cb14-6"><a href="#cb14-6"></a>    <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="fu">error</span> <span class="op">$</span> <span class="st">&quot;ErrorMap.getError: impossible missing type &quot;</span> <span class="op">&lt;&gt;</span> <span class="fu">show</span> (typeRep <span class="op">@</span>e)</span></code></pre></div>
+<h2 id="writing-validable-instances">Writing <code>Validable</code> instances</h2>
+<p>Let’s first make a couple of simple instances for <code>Validable</code> type class. These instances will have to store their errors in an <code>ErrorMap</code>, so we introduce <code>one</code> as a wrapper of <code>TMap.one</code>:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1"></a><span class="ot">one ::</span> <span class="dt">Typeable</span> e <span class="ot">=&gt;</span> e <span class="ot">-&gt;</span> <span class="dt">ErrorMap</span> '[e]</span>
+<span id="cb15-2"><a href="#cb15-2"></a>one e <span class="ot">=</span> <span class="dt">ErrorMap</span> <span class="op">$</span> TMap.one e</span></code></pre></div>
+<p>Start with <code>PositiveInt</code>s. For that, we must choose how to represent errors. For the purpose of this post, a simple <code>Map</code> with field names will suffice:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1"></a><span class="co">-- Int tagged with its field name.</span></span>
+<span id="cb16-2"><a href="#cb16-2"></a><span class="kw">newtype</span> <span class="dt">PositiveInt</span> (<span class="ot">field ::</span> <span class="dt">Symbol</span>) (<span class="ot">v ::</span> <span class="dt">Validity</span>) <span class="ot">=</span> <span class="dt">PositiveInt</span> <span class="dt">Int</span> <span class="kw">deriving</span> (<span class="dt">Eq</span>, <span class="dt">Show</span>, <span class="dt">Generic</span>)</span>
+<span id="cb16-3"><a href="#cb16-3"></a><span class="co">-- Collect wrong numbers per field name.</span></span>
+<span id="cb16-4"><a href="#cb16-4"></a><span class="kw">newtype</span> <span class="dt">PositiveIntErrors</span> <span class="ot">=</span> <span class="dt">PositiveIntErrors</span> (<span class="dt">Map</span> <span class="dt">String</span> [<span class="dt">Int</span>]) <span class="kw">deriving</span> (<span class="dt">Eq</span>, <span class="dt">Show</span>)</span>
+<span id="cb16-5"><a href="#cb16-5"></a></span>
+<span id="cb16-6"><a href="#cb16-6"></a><span class="co">-- To accumulate all wrong numbers in one list.</span></span>
+<span id="cb16-7"><a href="#cb16-7"></a><span class="kw">instance</span> <span class="dt">Semigroup</span> <span class="dt">PositiveIntErrors</span> <span class="kw">where</span></span>
+<span id="cb16-8"><a href="#cb16-8"></a>  (<span class="op">&lt;&gt;</span>) <span class="ot">=</span> coerce <span class="op">$</span> (unionWith <span class="op">@</span><span class="dt">String</span> <span class="op">@</span>[<span class="dt">Int</span>]) (<span class="op">&lt;&gt;</span>)</span>
+<span id="cb16-9"><a href="#cb16-9"></a></span>
+<span id="cb16-10"><a href="#cb16-10"></a><span class="kw">instance</span> <span class="dt">KnownSymbol</span> field <span class="ot">=&gt;</span> <span class="dt">Validable</span> '[<span class="dt">PositiveIntErrors</span>] (<span class="dt">PositiveInt</span> field) <span class="kw">where</span></span>
+<span id="cb16-11"><a href="#cb16-11"></a>  validate (<span class="dt">PositiveInt</span> n)</span>
+<span id="cb16-12"><a href="#cb16-12"></a>    <span class="op">|</span> n <span class="op">&gt;</span> <span class="dv">0</span> <span class="ot">=</span> <span class="fu">pure</span> <span class="op">$</span> <span class="dt">PositiveInt</span> n</span>
+<span id="cb16-13"><a href="#cb16-13"></a>    <span class="op">|</span> <span class="fu">otherwise</span> <span class="ot">=</span> <span class="dt">Failure</span> <span class="op">$</span> one <span class="op">$</span> <span class="dt">PositiveIntErrors</span> <span class="op">$</span> singleton (symbolVal <span class="op">@</span>field <span class="dt">Proxy</span>) [n]</span></code></pre></div>
+<p>Let’s see how it works:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1"></a>pn1 <span class="ot">=</span> <span class="dt">PositiveInt</span> <span class="op">@</span><span class="st">&quot;age&quot;</span> <span class="dv">42</span></span>
+<span id="cb17-2"><a href="#cb17-2"></a>pn2 <span class="ot">=</span> <span class="dt">PositiveInt</span> <span class="op">@</span><span class="st">&quot;age&quot;</span> (<span class="op">-</span><span class="dv">5</span>)</span>
+<span id="cb17-3"><a href="#cb17-3"></a>pn3 <span class="ot">=</span> <span class="dt">PositiveInt</span> <span class="op">@</span><span class="st">&quot;age&quot;</span> (<span class="op">-</span><span class="dv">10</span>)</span>
+<span id="cb17-4"><a href="#cb17-4"></a>pn4 <span class="ot">=</span> <span class="dt">PositiveInt</span> <span class="op">@</span><span class="st">&quot;height&quot;</span> (<span class="op">-</span><span class="dv">256</span>)</span></code></pre></div>
+<pre><code>λ&gt; validate pn1
+Success (PositiveInt 42)
+λ&gt; let Failure es = validate pn2 in getError @PositiveIntErrors es
+PositiveIntErrors (fromList [(&quot;age&quot;,[-5])])</code></pre>
+<p>As expected, one number is validated without problems. Now let’s try to validate a list of them:</p>
+<pre><code>λ&gt; let Failure es = traverse validate [pn1, pn2, pn3] *&gt; validate pn4 in getError @PositiveIntErrors es
+PositiveIntErrors (fromList [(&quot;age&quot;,[-5,-10]),(&quot;height&quot;,[-256])])</code></pre>
+<p>Notice that our grouping worked: we have separate reports for “age” and “height” fields. And that all errors are collected.</p>
+<p>Now we can write validation for a String with a fixed number of possibilities in the same spirit:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb20-1"><a href="#cb20-1"></a><span class="kw">newtype</span> <span class="dt">EnumString</span> (<span class="ot">v ::</span> <span class="dt">Validity</span>) <span class="ot">=</span> <span class="dt">EnumString</span> <span class="dt">String</span> <span class="kw">deriving</span> (<span class="dt">Eq</span>, <span class="dt">Show</span>, <span class="dt">Generic</span>)</span>
+<span id="cb20-2"><a href="#cb20-2"></a></span>
+<span id="cb20-3"><a href="#cb20-3"></a><span class="kw">instance</span> <span class="dt">Validable</span> '[[<span class="dt">String</span>]] <span class="dt">EnumString</span> <span class="kw">where</span></span>
+<span id="cb20-4"><a href="#cb20-4"></a>  validate (<span class="dt">EnumString</span> s)</span>
+<span id="cb20-5"><a href="#cb20-5"></a>    <span class="co">-- For demonstration we keep the list of errors static, but of course it can be on type-level as</span></span>
+<span id="cb20-6"><a href="#cb20-6"></a>    <span class="co">-- well.</span></span>
+<span id="cb20-7"><a href="#cb20-7"></a>    <span class="op">|</span> s <span class="ot">`elem`</span> [<span class="st">&quot;foo&quot;</span>, <span class="st">&quot;bar&quot;</span>, <span class="st">&quot;baz&quot;</span>, <span class="st">&quot;enterprise&quot;</span>] <span class="ot">=</span> <span class="fu">pure</span> <span class="op">$</span> <span class="dt">EnumString</span> s</span>
+<span id="cb20-8"><a href="#cb20-8"></a>    <span class="op">|</span> <span class="fu">otherwise</span> <span class="ot">=</span> <span class="dt">Failure</span> <span class="op">$</span> one [s]</span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb21-1"><a href="#cb21-1"></a>es1 <span class="ot">=</span> <span class="dt">EnumString</span> <span class="st">&quot;foo&quot;</span></span>
+<span id="cb21-2"><a href="#cb21-2"></a>es2 <span class="ot">=</span> <span class="dt">EnumString</span> <span class="st">&quot;noes&quot;</span></span></code></pre></div>
+<p>Confirm that it works:</p>
+<pre><code>λ&gt; let Failure es = traverse validate [es1, es2] in getError @[String] es
+[&quot;noes&quot;]</code></pre>
+<h2 id="generic-validation">Generic validation</h2>
+<p>Now let’s use GHC’s <code>Generic</code> mechanism to make validators for compound data types automatically. In our Generic code we would need to change the tag from <code>'Raw</code> to <code>'Valid</code>, therefore we actually need a typeclass called <code>Generic1</code>, which is the same as <code>Generic</code>, but for types of kind <code>k -&gt; Type</code>.</p>
+<p>First we make a type class <code>GValidable</code>, which is <code>Validable</code> for Generic data:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb23-1"><a href="#cb23-1"></a><span class="kw">class</span> <span class="dt">GValidable</span> (<span class="ot">es ::</span> [<span class="dt">Type</span>]) (<span class="ot">g ::</span> <span class="dt">Validity</span> <span class="ot">-&gt;</span> <span class="dt">Type</span>) <span class="op">|</span> g <span class="ot">-&gt;</span> es <span class="kw">where</span></span>
+<span id="cb23-2"><a href="#cb23-2"></a><span class="ot">  gvalidate ::</span> g <span class="dt">'Raw</span> <span class="ot">-&gt;</span> <span class="dt">Validation</span> (<span class="dt">ErrorMap</span> es) (g <span class="dt">'Valid</span>)</span></code></pre></div>
+<p>Here <code>g</code> is expected to be <code>Rep1 a</code> for some type <code>a :: Validity -&gt; Type</code>. Using that, we can add default implementation for our <code>Validable</code> class:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb24-1"><a href="#cb24-1"></a><span class="kw">class</span> <span class="dt">Validable</span> (<span class="ot">es ::</span> [<span class="dt">Type</span>]) (<span class="ot">a ::</span> <span class="dt">Validity</span> <span class="ot">-&gt;</span> <span class="dt">Type</span>) <span class="op">|</span> a <span class="ot">-&gt;</span> es <span class="kw">where</span></span>
+<span id="cb24-2"><a href="#cb24-2"></a><span class="ot">  validate ::</span> a <span class="dt">'Raw</span> <span class="ot">-&gt;</span> <span class="dt">Validation</span> (<span class="dt">ErrorMap</span> es) (a <span class="dt">'Valid</span>)</span>
+<span id="cb24-3"><a href="#cb24-3"></a></span>
+<span id="cb24-4"><a href="#cb24-4"></a>  default<span class="ot"> validate ::</span> (<span class="dt">Generic1</span> a, <span class="dt">GValidable</span> es (<span class="dt">Rep1</span> a)) <span class="ot">=&gt;</span> a <span class="dt">'Raw</span> <span class="ot">-&gt;</span> <span class="dt">Validation</span> (<span class="dt">ErrorMap</span> es) (a <span class="dt">'Valid</span>)</span>
+<span id="cb24-5"><a href="#cb24-5"></a>  validate <span class="ot">=</span> <span class="fu">fmap</span> to1 <span class="op">.</span> gvalidate <span class="op">.</span> from1</span></code></pre></div>
+<p>Next comes the usual Generic stuff: matching on constructors and fields and leveraging already existing <code>Validable</code> instances.</p>
+<p>Here’s the code, with an explanation for each instance:</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb25-1"><a href="#cb25-1"></a><span class="co">-- 'Rec1 a' is a field with kind `Validity -&gt; Type`. To validate it, we must turn to its `Validable`</span></span>
+<span id="cb25-2"><a href="#cb25-2"></a><span class="co">-- instance.</span></span>
+<span id="cb25-3"><a href="#cb25-3"></a><span class="kw">instance</span> (<span class="dt">Validable</span> es a) <span class="ot">=&gt;</span> <span class="dt">GValidable</span> es (<span class="dt">Rec1</span> (<span class="ot">a ::</span> <span class="dt">Validity</span> <span class="ot">-&gt;</span> <span class="dt">Type</span>)) <span class="kw">where</span></span>
+<span id="cb25-4"><a href="#cb25-4"></a>  gvalidate (<span class="dt">Rec1</span> a) <span class="ot">=</span> <span class="dt">Rec1</span> <span class="op">&lt;$&gt;</span> validate a</span>
+<span id="cb25-5"><a href="#cb25-5"></a></span>
+<span id="cb25-6"><a href="#cb25-6"></a><span class="co">-- ':.:' denotes composition of two types, 'a :: Validity -&gt; Type' and 'f :: Type -&gt; Type'. This</span></span>
+<span id="cb25-7"><a href="#cb25-7"></a><span class="co">-- instance enables validation of 'GValidable' fields embedded in any 'Traversable' functor like lists.</span></span>
+<span id="cb25-8"><a href="#cb25-8"></a><span class="kw">instance</span> (<span class="dt">Traversable</span> f, <span class="dt">GValidable</span> es a, <span class="dt">Semigroup</span> (<span class="dt">ErrorMap</span> es)) <span class="ot">=&gt;</span> <span class="dt">GValidable</span> es (f <span class="op">:.:</span> a) <span class="kw">where</span></span>
+<span id="cb25-9"><a href="#cb25-9"></a>  gvalidate (<span class="dt">Comp1</span> as) <span class="ot">=</span> <span class="dt">Comp1</span> <span class="op">&lt;$&gt;</span> <span class="fu">traverse</span> gvalidate as</span>
+<span id="cb25-10"><a href="#cb25-10"></a></span>
+<span id="cb25-11"><a href="#cb25-11"></a><span class="co">-- 'Rec0' is a field of &quot;simple&quot; type, which requires no validation.</span></span>
+<span id="cb25-12"><a href="#cb25-12"></a><span class="kw">instance</span> <span class="dt">GValidable</span> '[] (<span class="dt">Rec0</span> (<span class="ot">a ::</span> <span class="dt">Type</span>)) <span class="kw">where</span></span>
+<span id="cb25-13"><a href="#cb25-13"></a>  gvalidate (<span class="dt">K1</span> a) <span class="ot">=</span> <span class="dt">K1</span> <span class="op">&lt;$&gt;</span> <span class="fu">pure</span> a</span>
+<span id="cb25-14"><a href="#cb25-14"></a></span>
+<span id="cb25-15"><a href="#cb25-15"></a><span class="co">-- The next three instances are to unwrap Generic's metadata wrappers for data types and fields.</span></span>
+<span id="cb25-16"><a href="#cb25-16"></a><span class="kw">instance</span> <span class="dt">GValidable</span> e a <span class="ot">=&gt;</span> <span class="dt">GValidable</span> e (<span class="dt">S1</span> meta a) <span class="kw">where</span></span>
+<span id="cb25-17"><a href="#cb25-17"></a>  gvalidate (<span class="dt">M1</span> a) <span class="ot">=</span> <span class="dt">M1</span> <span class="op">&lt;$&gt;</span> gvalidate a</span>
+<span id="cb25-18"><a href="#cb25-18"></a></span>
+<span id="cb25-19"><a href="#cb25-19"></a><span class="kw">instance</span> <span class="dt">GValidable</span> e a <span class="ot">=&gt;</span> <span class="dt">GValidable</span> e (<span class="dt">C1</span> meta a) <span class="kw">where</span></span>
+<span id="cb25-20"><a href="#cb25-20"></a>  gvalidate (<span class="dt">M1</span> a) <span class="ot">=</span> <span class="dt">M1</span> <span class="op">&lt;$&gt;</span> gvalidate a</span>
+<span id="cb25-21"><a href="#cb25-21"></a></span>
+<span id="cb25-22"><a href="#cb25-22"></a><span class="kw">instance</span> <span class="dt">GValidable</span> e a <span class="ot">=&gt;</span> <span class="dt">GValidable</span> e (<span class="dt">D1</span> meta a) <span class="kw">where</span></span>
+<span id="cb25-23"><a href="#cb25-23"></a>  gvalidate (<span class="dt">M1</span> a) <span class="ot">=</span> <span class="dt">M1</span> <span class="op">&lt;$&gt;</span> gvalidate a</span></code></pre></div>
+<p>There is only one instance left to do — the one for <code>:*:</code>, data type fields in Generic representation. But there is a problem: we can’t just write it like this:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode haskell ignore"><code class="sourceCode haskell"><span id="cb26-1"><a href="#cb26-1"></a><span class="kw">instance</span> (<span class="dt">GValidable</span> es a, <span class="dt">GValidable</span> es b) <span class="ot">=&gt;</span> <span class="dt">GValidable</span> es (a <span class="op">:*:</span> b) <span class="kw">where</span></span></code></pre></div>
+<p>since such instance will force error types of all fields to be the same. Instead, we would like to have a union of two independent error type sets. For that, we turn to Type Families.</p>
+<p>This one will check if error set <code>es</code> contains the type <code>e</code>:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb27-1"><a href="#cb27-1"></a><span class="co">-- O(n) in the length of 'es'.</span></span>
+<span id="cb27-2"><a href="#cb27-2"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">HasError</span> (<span class="ot">e ::</span> <span class="dt">Type</span>) (<span class="ot">es ::</span> [<span class="dt">Type</span>])<span class="ot"> ::</span> <span class="dt">Bool</span> <span class="kw">where</span></span>
+<span id="cb27-3"><a href="#cb27-3"></a>  <span class="dt">HasError</span> e (e '<span class="op">:</span> _) <span class="ot">=</span> <span class="dt">'True</span></span>
+<span id="cb27-4"><a href="#cb27-4"></a>  <span class="dt">HasError</span> e (_ '<span class="op">:</span> es) <span class="ot">=</span> <span class="dt">HasError</span> e es</span>
+<span id="cb27-5"><a href="#cb27-5"></a>  <span class="dt">HasError</span> e '[] <span class="ot">=</span> <span class="dt">'False</span></span>
+<span id="cb27-6"><a href="#cb27-6"></a></span>
+<span id="cb27-7"><a href="#cb27-7"></a><span class="co">-- 'HasError' packed as as 'Constraint'.</span></span>
+<span id="cb27-8"><a href="#cb27-8"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">HasErrorC</span> (<span class="ot">e ::</span> <span class="dt">Type</span>) (<span class="ot">es ::</span> [<span class="dt">Type</span>])<span class="ot"> ::</span> <span class="dt">Constraint</span> <span class="kw">where</span></span>
+<span id="cb27-9"><a href="#cb27-9"></a>  <span class="dt">HasErrorC</span> e es <span class="ot">=</span></span>
+<span id="cb27-10"><a href="#cb27-10"></a>    <span class="dt">If</span> (<span class="dt">HasError</span> e es)</span>
+<span id="cb27-11"><a href="#cb27-11"></a>       (<span class="ot"> () ::</span> <span class="dt">Constraint</span> )</span>
+<span id="cb27-12"><a href="#cb27-12"></a>       (<span class="dt">TypeError</span> (<span class="dt">'Text</span> <span class="st">&quot;No error of type &quot;</span> <span class="op">:&lt;&gt;:</span> <span class="dt">'ShowType</span> e <span class="op">:&lt;&gt;:</span> <span class="dt">'Text</span> <span class="st">&quot; in the list &quot;</span> <span class="op">:&lt;&gt;:</span> <span class="dt">'ShowType</span> es))</span></code></pre></div>
+<p>And this one will merge two lists of errors, keeping the result set deduplicated:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb28-1"><a href="#cb28-1"></a><span class="co">-- O(n*m)</span></span>
+<span id="cb28-2"><a href="#cb28-2"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">MergeErrors</span> (<span class="ot">e1 ::</span> [<span class="dt">Type</span>]) (<span class="ot">e2 ::</span> [<span class="dt">Type</span>])<span class="ot"> ::</span> [<span class="dt">Type</span>] <span class="kw">where</span></span>
+<span id="cb28-3"><a href="#cb28-3"></a>  <span class="dt">MergeErrors</span> '[] e2 <span class="ot">=</span> e2</span>
+<span id="cb28-4"><a href="#cb28-4"></a>  <span class="dt">MergeErrors</span> (e '<span class="op">:</span> es) e2 <span class="ot">=</span></span>
+<span id="cb28-5"><a href="#cb28-5"></a>    <span class="dt">If</span> (<span class="dt">HasError</span> e e2)</span>
+<span id="cb28-6"><a href="#cb28-6"></a>       (<span class="dt">MergeErrors</span> es e2)</span>
+<span id="cb28-7"><a href="#cb28-7"></a>       (e '<span class="op">:</span> <span class="dt">MergeErrors</span> es e2)</span></code></pre></div>
+<p>And now we are ready to make the instance:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb29-1"><a href="#cb29-1"></a><span class="kw">instance</span> (<span class="dt">GValidable</span> es1 a, <span class="dt">GValidable</span> es2 b, es3 <span class="op">~</span> <span class="dt">MergeErrors</span> es1 es2, <span class="dt">Semigroup</span> (<span class="dt">ErrorMap</span> es3)) <span class="ot">=&gt;</span> <span class="dt">GValidable</span> es3 (a <span class="op">:*:</span> b) <span class="kw">where</span></span>
+<span id="cb29-2"><a href="#cb29-2"></a>  gvalidate (l <span class="op">:*:</span> r) <span class="ot">=</span> (<span class="op">:*:</span>) <span class="op">&lt;$&gt;</span> coerce (gvalidate <span class="op">@</span>es1 l) <span class="op">&lt;*&gt;</span> coerce (gvalidate <span class="op">@</span>es2 r)</span></code></pre></div>
+<p>The trick is to use <code>coerce</code> to “widen” error set of <code>gvalidate @es1</code> to <code>es3</code>, and the same for <code>es2</code>. Since we define <code>es3 ~ MergeErrors es1 es2</code>, we always know that <code>es1</code> is a subset of <code>es3</code> and coercion is safe — we don’t lose any data in the map.</p>
+<h2 id="validation-of-records">Validation of records</h2>
+<p>Now it’s time to put our Generic implementation to test. Let’s define a record using <code>PositiveInt</code>s and <code>EnumString</code>s:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb30-1"><a href="#cb30-1"></a><span class="kw">data</span> <span class="dt">Example</span> (<span class="ot">v ::</span> <span class="dt">Validity</span>)</span>
+<span id="cb30-2"><a href="#cb30-2"></a>  <span class="ot">=</span> <span class="dt">Example</span></span>
+<span id="cb30-3"><a href="#cb30-3"></a>      {<span class="ot"> age ::</span> <span class="dt">PositiveInt</span> <span class="st">&quot;age&quot;</span> v</span>
+<span id="cb30-4"><a href="#cb30-4"></a>      ,<span class="ot"> height ::</span> <span class="dt">PositiveInt</span> <span class="st">&quot;height&quot;</span> v</span>
+<span id="cb30-5"><a href="#cb30-5"></a>      ,<span class="ot"> tags ::</span> [<span class="dt">EnumString</span> v]</span>
+<span id="cb30-6"><a href="#cb30-6"></a>      }</span>
+<span id="cb30-7"><a href="#cb30-7"></a>  <span class="kw">deriving</span> (<span class="dt">Eq</span>, <span class="dt">Show</span>, <span class="dt">Generic</span>, <span class="dt">Generic1</span>)</span>
+<span id="cb30-8"><a href="#cb30-8"></a></span>
+<span id="cb30-9"><a href="#cb30-9"></a><span class="kw">deriving</span> <span class="kw">instance</span> <span class="dt">Validable</span> '[<span class="dt">PositiveIntErrors</span>, [<span class="dt">String</span>]] <span class="dt">Example</span></span>
+<span id="cb30-10"><a href="#cb30-10"></a></span>
+<span id="cb30-11"><a href="#cb30-11"></a><span class="ot">ex ::</span> <span class="dt">Example</span> <span class="dt">'Raw</span></span>
+<span id="cb30-12"><a href="#cb30-12"></a>ex <span class="ot">=</span> <span class="dt">Example</span> (<span class="dt">PositiveInt</span> (<span class="op">-</span><span class="dv">42</span>)) (<span class="dt">PositiveInt</span> (<span class="op">-</span><span class="dv">23</span>)) [<span class="dt">EnumString</span> <span class="st">&quot;foo&quot;</span>, <span class="dt">EnumString</span> <span class="st">&quot;noes&quot;</span>, <span class="dt">EnumString</span> <span class="st">&quot;lala&quot;</span>]</span></code></pre></div>
+<p>Now we can validate this type and see that errors of all types are collected correctly:</p>
+<pre><code>λ&gt; let Failure es = validate ex
+λ&gt; getError @PositiveIntErrors es
+PositiveIntErrors (fromList [(&quot;age&quot;,[-42]),(&quot;height&quot;,[-23])])
+λ&gt; getError @[String] es
+[&quot;noes&quot;,&quot;lala&quot;]</code></pre>
+<h2 id="usage-with-aeson">Usage with <code>aeson</code></h2>
+<p>As I said in the beginning, the purpose of this library is to validate input data in JSON. For that I propose this workflow:</p>
+<ol type="1">
+<li>Make <code>FromJSON</code> instance for the type with <code>'Raw</code> tag:</li>
+</ol>
+<div class="sourceCode" id="cb32"><pre class="sourceCode haskell ignore"><code class="sourceCode haskell"><span id="cb32-1"><a href="#cb32-1"></a><span class="kw">deriving</span> <span class="kw">instance</span> <span class="dt">FromJSON</span> (<span class="dt">Example</span> <span class="dt">'Raw</span>)</span></code></pre></div>
+<ol start="2" type="1">
+<li>Make <code>Validable</code> instance for that type.</li>
+<li>Use <code>a 'Valid</code> in business logic functions.</li>
+</ol>
+<h2 id="conclusion">Conclusion</h2>
+<p>We’ve created a validation framework that is generic both in the types of errors that can be reported and in the types of data that can be validated.</p>
+<p>If this approach gains some interest, I’ll package it as a library and upload to Hackage.</p>
+
+        </div>
+        </div>
+        <div id="footer">
+          <div class="inside">
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>.
+            This theme was designed by <a href="http://twitter.com/katychuang">Dr. Kat</a> and showcased in the <a href="http://katychuang.com/hakyll-cssgarden/gallery/">Hakyll-CSSGarden</a>
+          </div>
+        </div>
+    </body>
+</html>

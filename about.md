@@ -18,6 +18,9 @@ theory.
 
 ### In Russian
 
+- [PiterPy Meetup 04.2020], Saint Petersburg, Russia: "Informal introduction to Type Theory",
+  [on YouTube](https://www.youtube.com/watch?v=RzzhKTiDSWQ),
+  [slides](https://slides.com/maximkoltsov/type-theory-intro/#/).
 - [fpure 2019](https://fpure.events), Kazan, Russia: "Workshop: Neo4j + Haskell + hasbolt"
 - [PiterPy Meetup 12.2018], Saint Petersburg, Russia: "Typing in Python 3 (and mode)",
   [on YouTube](https://www.youtube.com/watch?v=EU9DoJD1olo),

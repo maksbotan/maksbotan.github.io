@@ -75,111 +75,111 @@
 <p>We will use Haskell 98, that is Haskell + 98 extensions, as Csongor Kiss joked in his ICFP 2019 talk. Let us enable these extensions now.</p>
 <details class="code-details">
 <p><summary>Necessary extensions</summary></p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1"></a><span class="ot">{-# LANGUAGE AllowAmbiguousTypes #-}</span></span>
-<span id="cb2-2"><a href="#cb2-2"></a><span class="ot">{-# LANGUAGE DerivingVia #-}</span></span>
-<span id="cb2-3"><a href="#cb2-3"></a><span class="ot">{-# LANGUAGE FlexibleContexts #-}</span></span>
-<span id="cb2-4"><a href="#cb2-4"></a><span class="ot">{-# LANGUAGE FlexibleInstances #-}</span></span>
-<span id="cb2-5"><a href="#cb2-5"></a><span class="ot">{-# LANGUAGE FunctionalDependencies #-}</span></span>
-<span id="cb2-6"><a href="#cb2-6"></a><span class="ot">{-# LANGUAGE GADTs #-}</span></span>
-<span id="cb2-7"><a href="#cb2-7"></a><span class="ot">{-# LANGUAGE GeneralizedNewtypeDeriving #-}</span></span>
-<span id="cb2-8"><a href="#cb2-8"></a><span class="ot">{-# LANGUAGE InstanceSigs #-}</span></span>
-<span id="cb2-9"><a href="#cb2-9"></a><span class="ot">{-# LANGUAGE KindSignatures #-}</span></span>
-<span id="cb2-10"><a href="#cb2-10"></a><span class="ot">{-# LANGUAGE MultiParamTypeClasses #-}</span></span>
-<span id="cb2-11"><a href="#cb2-11"></a><span class="ot">{-# LANGUAGE RankNTypes #-}</span></span>
-<span id="cb2-12"><a href="#cb2-12"></a><span class="ot">{-# LANGUAGE StandaloneDeriving #-}</span></span>
-<span id="cb2-13"><a href="#cb2-13"></a><span class="ot">{-# LANGUAGE UndecidableInstances #-}</span></span>
-<span id="cb2-14"><a href="#cb2-14"></a></span>
-<span id="cb2-15"><a href="#cb2-15"></a><span class="kw">module</span> <span class="dt">ADI</span> <span class="kw">where</span></span>
-<span id="cb2-16"><a href="#cb2-16"></a></span>
-<span id="cb2-17"><a href="#cb2-17"></a><span class="kw">import</span> <span class="dt">Control.Applicative</span></span>
-<span id="cb2-18"><a href="#cb2-18"></a><span class="kw">import</span> <span class="dt">Control.Monad.Fail</span> (<span class="dt">MonadFail</span>)</span>
-<span id="cb2-19"><a href="#cb2-19"></a><span class="kw">import</span> <span class="dt">Control.Monad.Identity</span></span>
-<span id="cb2-20"><a href="#cb2-20"></a><span class="kw">import</span> <span class="dt">Control.Monad.List</span></span>
-<span id="cb2-21"><a href="#cb2-21"></a><span class="kw">import</span> <span class="dt">Control.Monad.Reader</span></span>
-<span id="cb2-22"><a href="#cb2-22"></a><span class="kw">import</span> <span class="dt">Control.Monad.State</span></span>
-<span id="cb2-23"><a href="#cb2-23"></a><span class="kw">import</span> <span class="dt">Control.Monad.Trans.Maybe</span></span>
-<span id="cb2-24"><a href="#cb2-24"></a><span class="kw">import</span> <span class="dt">Data.Kind</span> (<span class="dt">Type</span>)</span>
-<span id="cb2-25"><a href="#cb2-25"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.Map.Strict</span> <span class="kw">as</span> <span class="dt">M</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="ot">{-# LANGUAGE AllowAmbiguousTypes #-}</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a><span class="ot">{-# LANGUAGE DerivingVia #-}</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a><span class="ot">{-# LANGUAGE FlexibleContexts #-}</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a><span class="ot">{-# LANGUAGE FlexibleInstances #-}</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a><span class="ot">{-# LANGUAGE FunctionalDependencies #-}</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true"></a><span class="ot">{-# LANGUAGE GADTs #-}</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true"></a><span class="ot">{-# LANGUAGE GeneralizedNewtypeDeriving #-}</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true"></a><span class="ot">{-# LANGUAGE InstanceSigs #-}</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true"></a><span class="ot">{-# LANGUAGE KindSignatures #-}</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true"></a><span class="ot">{-# LANGUAGE MultiParamTypeClasses #-}</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true"></a><span class="ot">{-# LANGUAGE RankNTypes #-}</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true"></a><span class="ot">{-# LANGUAGE StandaloneDeriving #-}</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true"></a><span class="ot">{-# LANGUAGE UndecidableInstances #-}</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true"></a><span class="kw">module</span> <span class="dt">ADI</span> <span class="kw">where</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">Control.Applicative</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">Control.Monad.Fail</span> (<span class="dt">MonadFail</span>)</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">Control.Monad.Identity</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">Control.Monad.List</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">Control.Monad.Reader</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">Control.Monad.State</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">Control.Monad.Trans.Maybe</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">Data.Kind</span> (<span class="dt">Type</span>)</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.Map.Strict</span> <span class="kw">as</span> <span class="dt">M</span></span></code></pre></div>
 </details>
 <h2 id="the-target-language-and-its-embedding">The target language and its embedding</h2>
 <p>The language of <a href="#references">[1]</a> is a simple one — simply typed lambda calculus with one base type (integers) and recursion via explicit <code>let rec</code> binder. We will not copy-paste its definition here and proceed straight to embedding.</p>
 <p>Let us represent arithmetic operations available in the target language using a datatype:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">data</span> <span class="dt">Op</span> <span class="ot">=</span> <span class="dt">Plus</span> <span class="op">|</span> <span class="dt">Minus</span> <span class="op">|</span> <span class="dt">Times</span> <span class="op">|</span> <span class="dt">Divide</span> <span class="kw">deriving</span> (<span class="dt">Eq</span>, <span class="dt">Show</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="kw">data</span> <span class="dt">Op</span> <span class="ot">=</span> <span class="dt">Plus</span> <span class="op">|</span> <span class="dt">Minus</span> <span class="op">|</span> <span class="dt">Times</span> <span class="op">|</span> <span class="dt">Divide</span> <span class="kw">deriving</span> (<span class="dt">Eq</span>, <span class="dt">Show</span>)</span></code></pre></div>
 <p>First of all, we are going to use Typed Final Tagless encoding, to offload typechecking of the target language to GHC and also to ensure the totality of all interpreters. To do that, we will define a type class <code>Lang</code> over some representation type <code>repr :: Type -&gt; Type</code>, which will be our embedding:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">class</span> <span class="dt">Lang</span> repr <span class="kw">where</span></span>
-<span id="cb4-2"><a href="#cb4-2"></a><span class="ot">  num ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> repr <span class="dt">Int</span></span>
-<span id="cb4-3"><a href="#cb4-3"></a><span class="ot">  if0 ::</span> repr <span class="dt">Int</span> <span class="ot">-&gt;</span> repr a <span class="ot">-&gt;</span> repr a <span class="ot">-&gt;</span> repr a</span>
-<span id="cb4-4"><a href="#cb4-4"></a><span class="ot">  op ::</span> <span class="dt">Op</span> <span class="ot">-&gt;</span> repr <span class="dt">Int</span> <span class="ot">-&gt;</span> repr <span class="dt">Int</span> <span class="ot">-&gt;</span> repr <span class="dt">Int</span></span>
-<span id="cb4-5"><a href="#cb4-5"></a></span>
-<span id="cb4-6"><a href="#cb4-6"></a><span class="ot">  var ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> repr a</span>
-<span id="cb4-7"><a href="#cb4-7"></a><span class="ot">  lam ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> repr b <span class="ot">-&gt;</span> repr (a <span class="ot">-&gt;</span> b)</span>
-<span id="cb4-8"><a href="#cb4-8"></a><span class="ot">  app ::</span> repr (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> repr a <span class="ot">-&gt;</span> repr b</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="kw">class</span> <span class="dt">Lang</span> repr <span class="kw">where</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a><span class="ot">  num ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> repr <span class="dt">Int</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a><span class="ot">  if0 ::</span> repr <span class="dt">Int</span> <span class="ot">-&gt;</span> repr a <span class="ot">-&gt;</span> repr a <span class="ot">-&gt;</span> repr a</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a><span class="ot">  op ::</span> <span class="dt">Op</span> <span class="ot">-&gt;</span> repr <span class="dt">Int</span> <span class="ot">-&gt;</span> repr <span class="dt">Int</span> <span class="ot">-&gt;</span> repr <span class="dt">Int</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true"></a><span class="ot">  var ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> repr a</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true"></a><span class="ot">  lam ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> repr b <span class="ot">-&gt;</span> repr (a <span class="ot">-&gt;</span> b)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true"></a><span class="ot">  app ::</span> repr (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> repr a <span class="ot">-&gt;</span> repr b</span></code></pre></div>
 <details class="code-details">
 <summary>A note on type safety</summary> There is, of course, a way to subvert the type-system by using the <code>var</code> combinator with an arbitrary type. This may be amended by pushing variable bindings to the type level, but this is not essential for this presentation.
 </details>
 <p>Note that we are using explicit variable names in lambda-abstractions. If we were to follow Kiselyov’s work to the letter, we would need to represent the target language’s lambdas as Haskell functions:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode haskell ignore"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1"></a><span class="ot">lam ::</span> (repr a <span class="ot">-&gt;</span> repr b) <span class="ot">-&gt;</span> repr (a <span class="ot">-&gt;</span> b)</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell ignore"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="ot">lam ::</span> (repr a <span class="ot">-&gt;</span> repr b) <span class="ot">-&gt;</span> repr (a <span class="ot">-&gt;</span> b)</span></code></pre></div>
 <p>While this may be made to work in our case with some effort, it does not match the ADI paper and does not really fit our task. Reasons for this will be given in the next section.</p>
 <p>Now that we have an embedding of our language, we can write some terms in it. We will use some examples from the paper and a couple more.</p>
 <p>This term is supposed to evaluate to 63:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1"></a><span class="ot">t63 ::</span> <span class="dt">Lang</span> repr <span class="ot">=&gt;</span> repr <span class="dt">Int</span></span>
-<span id="cb6-2"><a href="#cb6-2"></a>t63 <span class="ot">=</span> op <span class="dt">Times</span> (op <span class="dt">Plus</span> (num <span class="dv">3</span>) (num <span class="dv">4</span>)) (num <span class="dv">9</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="ot">t63 ::</span> <span class="dt">Lang</span> repr <span class="ot">=&gt;</span> repr <span class="dt">Int</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a>t63 <span class="ot">=</span> op <span class="dt">Times</span> (op <span class="dt">Plus</span> (num <span class="dv">3</span>) (num <span class="dv">4</span>)) (num <span class="dv">9</span>)</span></code></pre></div>
 <p>This term is supposed to fail due to division by zero:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1"></a><span class="ot">tDivZero ::</span> <span class="dt">Lang</span> repr <span class="ot">=&gt;</span> repr <span class="dt">Int</span></span>
-<span id="cb7-2"><a href="#cb7-2"></a>tDivZero <span class="ot">=</span> op <span class="dt">Divide</span> (num <span class="dv">5</span>) (op <span class="dt">Minus</span> (num <span class="dv">3</span>) (num <span class="dv">3</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="ot">tDivZero ::</span> <span class="dt">Lang</span> repr <span class="ot">=&gt;</span> repr <span class="dt">Int</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a>tDivZero <span class="ot">=</span> op <span class="dt">Divide</span> (num <span class="dv">5</span>) (op <span class="dt">Minus</span> (num <span class="dv">3</span>) (num <span class="dv">3</span>))</span></code></pre></div>
 <p>And these terms show that functions also work:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1"></a><span class="ot">tPlusTwo ::</span> <span class="dt">Lang</span> repr <span class="ot">=&gt;</span> repr (<span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span>)</span>
-<span id="cb8-2"><a href="#cb8-2"></a>tPlusTwo <span class="ot">=</span> lam <span class="st">&quot;x&quot;</span> (op <span class="dt">Plus</span> (var <span class="st">&quot;x&quot;</span>) (num <span class="dv">2</span>))</span>
-<span id="cb8-3"><a href="#cb8-3"></a></span>
-<span id="cb8-4"><a href="#cb8-4"></a><span class="ot">t42 ::</span> <span class="dt">Lang</span> repr <span class="ot">=&gt;</span> repr <span class="dt">Int</span></span>
-<span id="cb8-5"><a href="#cb8-5"></a>t42 <span class="ot">=</span> op <span class="dt">Times</span> (num <span class="dv">21</span>) (num <span class="dv">2</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="ot">tPlusTwo ::</span> <span class="dt">Lang</span> repr <span class="ot">=&gt;</span> repr (<span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a>tPlusTwo <span class="ot">=</span> lam <span class="st">&quot;x&quot;</span> (op <span class="dt">Plus</span> (var <span class="st">&quot;x&quot;</span>) (num <span class="dv">2</span>))</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a><span class="ot">t42 ::</span> <span class="dt">Lang</span> repr <span class="ot">=&gt;</span> repr <span class="dt">Int</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true"></a>t42 <span class="ot">=</span> op <span class="dt">Times</span> (num <span class="dv">21</span>) (num <span class="dv">2</span>)</span></code></pre></div>
 <p>Higher-order functions are representable and type-checked by GHC as well:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1"></a><span class="ot">tId ::</span> <span class="dt">Lang</span> repr <span class="ot">=&gt;</span> repr (a <span class="ot">-&gt;</span> a)</span>
-<span id="cb9-2"><a href="#cb9-2"></a>tId <span class="ot">=</span> lam <span class="st">&quot;x&quot;</span> (var <span class="st">&quot;x&quot;</span>)</span>
-<span id="cb9-3"><a href="#cb9-3"></a></span>
-<span id="cb9-4"><a href="#cb9-4"></a><span class="ot">tTwice ::</span> <span class="dt">Lang</span> repr <span class="ot">=&gt;</span> repr ((a <span class="ot">-&gt;</span> a) <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> a)</span>
-<span id="cb9-5"><a href="#cb9-5"></a>tTwice <span class="ot">=</span> lam <span class="st">&quot;f&quot;</span> (lam <span class="st">&quot;v&quot;</span> (app (var <span class="st">&quot;f&quot;</span>) (app (var <span class="st">&quot;f&quot;</span>) (var <span class="st">&quot;v&quot;</span>))))</span>
-<span id="cb9-6"><a href="#cb9-6"></a></span>
-<span id="cb9-7"><a href="#cb9-7"></a><span class="ot">tHO ::</span> <span class="dt">Lang</span> repr <span class="ot">=&gt;</span> repr <span class="dt">Int</span></span>
-<span id="cb9-8"><a href="#cb9-8"></a>tHO <span class="ot">=</span> app (app tTwice tPlusTwo) (num <span class="dv">42</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="ot">tId ::</span> <span class="dt">Lang</span> repr <span class="ot">=&gt;</span> repr (a <span class="ot">-&gt;</span> a)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a>tId <span class="ot">=</span> lam <span class="st">&quot;x&quot;</span> (var <span class="st">&quot;x&quot;</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a><span class="ot">tTwice ::</span> <span class="dt">Lang</span> repr <span class="ot">=&gt;</span> repr ((a <span class="ot">-&gt;</span> a) <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> a)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true"></a>tTwice <span class="ot">=</span> lam <span class="st">&quot;f&quot;</span> (lam <span class="st">&quot;v&quot;</span> (app (var <span class="st">&quot;f&quot;</span>) (app (var <span class="st">&quot;f&quot;</span>) (var <span class="st">&quot;v&quot;</span>))))</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true"></a><span class="ot">tHO ::</span> <span class="dt">Lang</span> repr <span class="ot">=&gt;</span> repr <span class="dt">Int</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true"></a>tHO <span class="ot">=</span> app (app tTwice tPlusTwo) (num <span class="dv">42</span>)</span></code></pre></div>
 <p>We omit recursive functions from our language for the sake of simplicity.</p>
 <p>Since we are using typed embedding, it is trivial to extend it with booleans and, for example, give a more precise type for <code>if0</code>.</p>
 <h2 id="runtime-representation">Runtime representation</h2>
 <p>Remember that making an <em>abstract interpreter</em> requires a store for values and closures. We choose to represent the mapping of variable names to their (integer) addresses in the store as <code>Data.Map.Strict.Map</code>:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">type</span> <span class="dt">VarEnv</span> <span class="ot">=</span> <span class="dt">M.Map</span> <span class="dt">String</span> <span class="dt">Int</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a><span class="kw">type</span> <span class="dt">VarEnv</span> <span class="ot">=</span> <span class="dt">M.Map</span> <span class="dt">String</span> <span class="dt">Int</span></span></code></pre></div>
 <p>The store will also be represented as a map from addresses to values. And at this point, we must decide on runtime representation of our values.</p>
 <p>When defining instances of his final tagless type classes, Kiselyov uses a newtype like this</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode haskell ignore"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">newtype</span> <span class="dt">R</span> a <span class="ot">=</span> <span class="dt">R</span> {<span class="ot"> unR ::</span> a } <span class="kw">deriving</span> (<span class="dt">Show</span>, <span class="dt">Eq</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell ignore"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="kw">newtype</span> <span class="dt">R</span> a <span class="ot">=</span> <span class="dt">R</span> {<span class="ot"> unR ::</span> a } <span class="kw">deriving</span> (<span class="dt">Show</span>, <span class="dt">Eq</span>)</span></code></pre></div>
 <p>emphasizing that it is not a tag.</p>
 <p>This newtype is used to store both values and closures of the target language, which are simple Haskell functions in his case. This plays well with <code>repr (a -&gt; b)</code> encoding of lambdas, since this is instantiated with <code>R (a -&gt; b)</code>, which is just an ordinary Haskell function.</p>
 <p>However, we can’t do it this way in our case, since in order to achieve the goal of the ADI paper, the implementation of the interpreter has to be monadic. This means that runtime representation of <code>repr (Int -&gt; Int)</code> can’t be a Haskell function of type <code>Int -&gt; Int</code>, but rather something like <code>Int -&gt; m Int</code>.</p>
 <p>To overcome this, we will introduce a type <code>Repr</code> with different constructors for different types of runtime values. This essentially drops the word “tagless” from our Final Tagless encoding. Doesn’t this defeat the whole point of doing everything in FT style?</p>
 <p>It follows from <a href="#references">[2]</a> that the sole purpose of doing everything in tagless style is to avoid runtime errors in the interpreter due to pattern matching on tags. The same effect may be achieved with GADTs, which have been available for a long time by now.</p>
 <p>With <code>GADTs</code>, we could define our representation type <code>Repr</code> as follows:</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode haskell ignore"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">data</span> <span class="dt">Repr</span> a <span class="kw">where</span></span>
-<span id="cb12-2"><a href="#cb12-2"></a>  <span class="dt">RNum</span><span class="ot"> ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Repr</span> <span class="dt">Int</span> <span class="co">-- for integers</span></span>
-<span id="cb12-3"><a href="#cb12-3"></a>  <span class="dt">RAbs</span><span class="ot"> ::</span> <span class="op">...</span> <span class="ot">-&gt;</span> <span class="dt">Repr</span> (a <span class="ot">-&gt;</span> b) <span class="co">-- for closures</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell ignore"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a><span class="kw">data</span> <span class="dt">Repr</span> a <span class="kw">where</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a>  <span class="dt">RNum</span><span class="ot"> ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Repr</span> <span class="dt">Int</span> <span class="co">-- for integers</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true"></a>  <span class="dt">RAbs</span><span class="ot"> ::</span> <span class="op">...</span> <span class="ot">-&gt;</span> <span class="dt">Repr</span> (a <span class="ot">-&gt;</span> b) <span class="co">-- for closures</span></span></code></pre></div>
 <p>Alas, this is not possible in our case. Our store, represented as a <code>Map</code>, is <em>monomorphic</em> in its value type, meaning that we would have to put <code>Repr a</code> in some kind of existential wrapper like <a href="http://hackage.haskell.org/package/base-4.12.0.0/docs/Data-Dynamic.html#t:Dynamic"><code>Data.Dynamic</code></a>, canceling the whole profit of having a <code>GADT</code>. Moreover, when applying abstract interpretation trick, we have to make the store finite, meaning that some cells will be occupied by more than one value which may have different types, again calling for existentials.</p>
 <p>So instead we make our <code>Repr</code> an ordinary ADT:</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">data</span> <span class="dt">Repr</span> (<span class="ot">m ::</span> <span class="dt">Type</span> <span class="ot">-&gt;</span> <span class="dt">Type</span>) <span class="kw">where</span></span>
-<span id="cb13-2"><a href="#cb13-2"></a>  <span class="dt">RNum</span><span class="ot"> ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Repr</span> m</span>
-<span id="cb13-3"><a href="#cb13-3"></a>  <span class="dt">RAbs</span><span class="ot"> ::</span> <span class="dt">VarEnv</span> <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> m (<span class="dt">Repr</span> m) <span class="ot">-&gt;</span> <span class="dt">Repr</span> m</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a><span class="kw">data</span> <span class="dt">Repr</span> (<span class="ot">m ::</span> <span class="dt">Type</span> <span class="ot">-&gt;</span> <span class="dt">Type</span>) <span class="kw">where</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true"></a>  <span class="dt">RNum</span><span class="ot"> ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Repr</span> m</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true"></a>  <span class="dt">RAbs</span><span class="ot"> ::</span> <span class="dt">VarEnv</span> <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> m (<span class="dt">Repr</span> m) <span class="ot">-&gt;</span> <span class="dt">Repr</span> m</span></code></pre></div>
 <details class="code-details">
 <p><summary>Show instance</summary></p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">instance</span> <span class="dt">Show</span> (<span class="dt">Repr</span> m) <span class="kw">where</span></span>
-<span id="cb14-2"><a href="#cb14-2"></a>  <span class="fu">showsPrec</span> p (<span class="dt">RNum</span> n)</span>
-<span id="cb14-3"><a href="#cb14-3"></a>     <span class="ot">=</span> <span class="fu">showParen</span></span>
-<span id="cb14-4"><a href="#cb14-4"></a>         (p <span class="op">&gt;=</span> <span class="dv">11</span>)</span>
-<span id="cb14-5"><a href="#cb14-5"></a>         (<span class="fu">showString</span> <span class="st">&quot;RNum &quot;</span> <span class="op">.</span> <span class="fu">showsPrec</span> <span class="dv">11</span> n)</span>
-<span id="cb14-6"><a href="#cb14-6"></a>  <span class="fu">showsPrec</span> p (<span class="dt">RAbs</span> _e x _v)</span>
-<span id="cb14-7"><a href="#cb14-7"></a>     <span class="ot">=</span> <span class="fu">showParen</span></span>
-<span id="cb14-8"><a href="#cb14-8"></a>         (p <span class="op">&gt;=</span> <span class="dv">11</span>)</span>
-<span id="cb14-9"><a href="#cb14-9"></a>         (<span class="fu">showString</span> <span class="st">&quot;RAbs &quot;</span> <span class="op">.</span> <span class="fu">showsPrec</span> <span class="dv">11</span> x)</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a><span class="kw">instance</span> <span class="dt">Show</span> (<span class="dt">Repr</span> m) <span class="kw">where</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true"></a>  <span class="fu">showsPrec</span> p (<span class="dt">RNum</span> n)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true"></a>     <span class="ot">=</span> <span class="fu">showParen</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true"></a>         (p <span class="op">&gt;=</span> <span class="dv">11</span>)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true"></a>         (<span class="fu">showString</span> <span class="st">&quot;RNum &quot;</span> <span class="op">.</span> <span class="fu">showsPrec</span> <span class="dv">11</span> n)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true"></a>  <span class="fu">showsPrec</span> p (<span class="dt">RAbs</span> _e x _v)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true"></a>     <span class="ot">=</span> <span class="fu">showParen</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true"></a>         (p <span class="op">&gt;=</span> <span class="dv">11</span>)</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true"></a>         (<span class="fu">showString</span> <span class="st">&quot;RAbs &quot;</span> <span class="op">.</span> <span class="fu">showsPrec</span> <span class="dv">11</span> x)</span></code></pre></div>
 </details>
 <p>This datatype is parameterized over arbitrary monad <code>m</code> in which the interpreter runs.</p>
 <p>Here, <code>RNum</code> constructor encodes integers of the target language and <code>RAbs</code> encodes its closures. <code>RAbs</code> has to store the variables captured by the closure, name of the lambda-bound variable it expects and a monadic action that evaluates it.</p>
 <p>Having defined this <code>Repr</code> type, we are able to define the type of the store, parameterized over the representation:</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">type</span> <span class="dt">ValStore</span> (<span class="ot">m ::</span> <span class="dt">Type</span> <span class="ot">-&gt;</span> <span class="dt">Type</span>) (<span class="ot">r ::</span> (<span class="dt">Type</span> <span class="ot">-&gt;</span> <span class="dt">Type</span>) <span class="ot">-&gt;</span> <span class="dt">Type</span>) <span class="ot">=</span> <span class="dt">M.Map</span> <span class="dt">Int</span> (r m)</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true"></a><span class="kw">type</span> <span class="dt">ValStore</span> (<span class="ot">m ::</span> <span class="dt">Type</span> <span class="ot">-&gt;</span> <span class="dt">Type</span>) (<span class="ot">r ::</span> (<span class="dt">Type</span> <span class="ot">-&gt;</span> <span class="dt">Type</span>) <span class="ot">-&gt;</span> <span class="dt">Type</span>) <span class="ot">=</span> <span class="dt">M.Map</span> <span class="dt">Int</span> (r m)</span></code></pre></div>
 <h2 id="representing-the-interpreter">Representing the interpreter</h2>
 <p>The next step is to write an interpreter. Now, we will argue that our task is not in embedding a single language in Haskell, but rather embedding <em>two</em> languages. The first one is the lambda-calculus we have already dealt with, and the second one is the language of abstract interpreters. It has the following operations:</p>
 <ul>
@@ -194,76 +194,76 @@
 <p>We will use <code>MonadReader</code> to represent binding of variables to their addresses and <code>MonadState</code> to represent the store. We also need <code>MonadFail</code> to represent the possibility of failure in the target language, to be able to detect divisions by zero.</p>
 <p><strong>The Interpreter Monad</strong></p>
 <p>As we are going to define interpretation monad in “mtl” style, we need a type class:</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1"></a><span class="kw">class</span> <span class="dt">MonadInterpreter</span> (<span class="ot">m ::</span> <span class="dt">Type</span> <span class="ot">-&gt;</span> <span class="dt">Type</span>) (<span class="ot">r ::</span> (<span class="dt">Type</span> <span class="ot">-&gt;</span> <span class="dt">Type</span>) <span class="ot">-&gt;</span> <span class="dt">Type</span>) <span class="op">|</span> m <span class="ot">-&gt;</span> r <span class="kw">where</span></span>
-<span id="cb16-2"><a href="#cb16-2"></a><span class="ot">  getEnv ::</span> m <span class="dt">VarEnv</span></span>
-<span id="cb16-3"><a href="#cb16-3"></a><span class="ot">  findAddr ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> m <span class="dt">Int</span></span>
-<span id="cb16-4"><a href="#cb16-4"></a><span class="ot">  readAddr ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> m (r m)</span>
-<span id="cb16-5"><a href="#cb16-5"></a><span class="ot">  alloc ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> m <span class="dt">Int</span></span>
-<span id="cb16-6"><a href="#cb16-6"></a><span class="ot">  store ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> r m <span class="ot">-&gt;</span> m ()</span>
-<span id="cb16-7"><a href="#cb16-7"></a><span class="ot">  withEnv ::</span> <span class="dt">VarEnv</span> <span class="ot">-&gt;</span> m a <span class="ot">-&gt;</span> m a</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true"></a><span class="kw">class</span> <span class="dt">MonadInterpreter</span> (<span class="ot">m ::</span> <span class="dt">Type</span> <span class="ot">-&gt;</span> <span class="dt">Type</span>) (<span class="ot">r ::</span> (<span class="dt">Type</span> <span class="ot">-&gt;</span> <span class="dt">Type</span>) <span class="ot">-&gt;</span> <span class="dt">Type</span>) <span class="op">|</span> m <span class="ot">-&gt;</span> r <span class="kw">where</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true"></a><span class="ot">  getEnv ::</span> m <span class="dt">VarEnv</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true"></a><span class="ot">  findAddr ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> m <span class="dt">Int</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true"></a><span class="ot">  readAddr ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> m (r m)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true"></a><span class="ot">  alloc ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> m <span class="dt">Int</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true"></a><span class="ot">  store ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> r m <span class="ot">-&gt;</span> m ()</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true"></a><span class="ot">  withEnv ::</span> <span class="dt">VarEnv</span> <span class="ot">-&gt;</span> m a <span class="ot">-&gt;</span> m a</span></code></pre></div>
 <p>Instances of this class will use <code>VarEnv</code> and <code>ValStore</code> class to interact with the store. We can use <code>MonadReader</code> and <code>MonadState</code> classes for that and give a general instance for our type class:</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1"></a><span class="kw">instance</span> (<span class="dt">Monad</span> m, <span class="dt">MonadReader</span> <span class="dt">VarEnv</span> m, <span class="dt">MonadState</span> (<span class="dt">ValStore</span> m r) m) <span class="ot">=&gt;</span> <span class="dt">MonadInterpreter</span> m r <span class="kw">where</span></span>
-<span id="cb17-2"><a href="#cb17-2"></a>  getEnv <span class="ot">=</span> ask</span>
-<span id="cb17-3"><a href="#cb17-3"></a>  findAddr x <span class="ot">=</span> (<span class="op">M.!</span> x) <span class="op">&lt;$&gt;</span> ask</span>
-<span id="cb17-4"><a href="#cb17-4"></a>  readAddr a <span class="ot">=</span> (<span class="op">M.!</span> a) <span class="op">&lt;$&gt;</span> get</span>
-<span id="cb17-5"><a href="#cb17-5"></a>  alloc _ <span class="ot">=</span> M.size <span class="op">&lt;$&gt;</span> get</span>
-<span id="cb17-6"><a href="#cb17-6"></a>  store x v <span class="ot">=</span> modify <span class="op">$</span> M.insert x v</span>
-<span id="cb17-7"><a href="#cb17-7"></a>  withEnv e <span class="ot">=</span> local (<span class="fu">const</span> <span class="op">$</span> e)</span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true"></a><span class="kw">instance</span> (<span class="dt">Monad</span> m, <span class="dt">MonadReader</span> <span class="dt">VarEnv</span> m, <span class="dt">MonadState</span> (<span class="dt">ValStore</span> m r) m) <span class="ot">=&gt;</span> <span class="dt">MonadInterpreter</span> m r <span class="kw">where</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true"></a>  getEnv <span class="ot">=</span> ask</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true"></a>  findAddr x <span class="ot">=</span> (<span class="op">M.!</span> x) <span class="op">&lt;$&gt;</span> ask</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true"></a>  readAddr a <span class="ot">=</span> (<span class="op">M.!</span> a) <span class="op">&lt;$&gt;</span> get</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true"></a>  alloc _ <span class="ot">=</span> M.size <span class="op">&lt;$&gt;</span> get</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true"></a>  store x v <span class="ot">=</span> modify <span class="op">$</span> M.insert x v</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true"></a>  withEnv e <span class="ot">=</span> local (<span class="fu">const</span> <span class="op">$</span> e)</span></code></pre></div>
 <p><strong>The actual interpreter</strong></p>
 <p>Finally, we are ready to make an instance of the <code>Lang</code> type class. For that, we need some type <code>repr</code> that will be able to unify with <code>Lang</code>’s member types. We can’t use some <code>Monad m =&gt; m a</code> for that because we want to use our <code>Repr</code> runtime tags. Let’s introduce a special wrapper:</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb18-1"><a href="#cb18-1"></a><span class="kw">newtype</span> <span class="dt">WithRepr</span> m r a <span class="ot">=</span> <span class="dt">WithRepr</span> {<span class="ot"> getInterp ::</span> m (r m) }</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true"></a><span class="kw">newtype</span> <span class="dt">WithRepr</span> m r a <span class="ot">=</span> <span class="dt">WithRepr</span> {<span class="ot"> getInterp ::</span> m (r m) }</span></code></pre></div>
 <p>Here <code>a</code> type variable is a phantom one, meaning that it will unify with type-checked <code>repr</code> from the typeclass, but there will be no type information in the runtime values.</p>
 <p>Instance for <code>Lang</code> is pretty straightforward:</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb19-1"><a href="#cb19-1"></a><span class="kw">instance</span> (<span class="dt">MonadInterpreter</span> m <span class="dt">Repr</span>, <span class="dt">MonadFail</span> m) <span class="ot">=&gt;</span> <span class="dt">Lang</span> (<span class="dt">WithRepr</span> m <span class="dt">Repr</span>) <span class="kw">where</span></span>
-<span id="cb19-2"><a href="#cb19-2"></a>  var x <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> findAddr x <span class="op">&gt;&gt;=</span> readAddr</span>
-<span id="cb19-3"><a href="#cb19-3"></a>    </span>
-<span id="cb19-4"><a href="#cb19-4"></a>  num x <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> <span class="fu">return</span> <span class="op">$</span> <span class="dt">RNum</span> x</span>
-<span id="cb19-5"><a href="#cb19-5"></a></span>
-<span id="cb19-6"><a href="#cb19-6"></a>  if0 (<span class="dt">WithRepr</span> x) (<span class="dt">WithRepr</span> a) (<span class="dt">WithRepr</span> b) <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> <span class="kw">do</span></span>
-<span id="cb19-7"><a href="#cb19-7"></a>    <span class="dt">RNum</span> x' <span class="ot">&lt;-</span> x</span>
-<span id="cb19-8"><a href="#cb19-8"></a>    <span class="co">-- Here a pattern match failure is possible, which is hidden by `MonadFail` instance.</span></span>
-<span id="cb19-9"><a href="#cb19-9"></a>    <span class="co">-- If we were using GADTs, `x` would have type `m (Repr Int)` and the only way to match was to use</span></span>
-<span id="cb19-10"><a href="#cb19-10"></a>    <span class="co">-- RNum constructor and GHC would be happy, but we are not, and so pattern match failure does</span></span>
-<span id="cb19-11"><a href="#cb19-11"></a>    <span class="co">-- not occur solely by our Gentlemen Agreement.</span></span>
-<span id="cb19-12"><a href="#cb19-12"></a>    <span class="co">-- This is equally relevant for every other method in this instance.</span></span>
-<span id="cb19-13"><a href="#cb19-13"></a>    <span class="kw">if</span> x' <span class="op">==</span> <span class="dv">0</span> <span class="kw">then</span> a <span class="kw">else</span> b</span>
-<span id="cb19-14"><a href="#cb19-14"></a></span>
-<span id="cb19-15"><a href="#cb19-15"></a>  op op' (<span class="dt">WithRepr</span> a) (<span class="dt">WithRepr</span> b) <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> <span class="kw">do</span></span>
-<span id="cb19-16"><a href="#cb19-16"></a>    <span class="dt">RNum</span> a' <span class="ot">&lt;-</span> a</span>
-<span id="cb19-17"><a href="#cb19-17"></a>    <span class="dt">RNum</span> b' <span class="ot">&lt;-</span> b</span>
-<span id="cb19-18"><a href="#cb19-18"></a>    <span class="kw">case</span> op' <span class="kw">of</span></span>
-<span id="cb19-19"><a href="#cb19-19"></a>      <span class="dt">Plus</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="op">$</span> <span class="dt">RNum</span> <span class="op">$</span> a' <span class="op">+</span> b'</span>
-<span id="cb19-20"><a href="#cb19-20"></a>      <span class="dt">Minus</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="op">$</span> <span class="dt">RNum</span> <span class="op">$</span> a' <span class="op">-</span> b'</span>
-<span id="cb19-21"><a href="#cb19-21"></a>      <span class="dt">Times</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="op">$</span> <span class="dt">RNum</span> <span class="op">$</span> a' <span class="op">*</span> b'</span>
-<span id="cb19-22"><a href="#cb19-22"></a>      <span class="dt">Divide</span> <span class="ot">-&gt;</span> <span class="kw">if</span> b' <span class="op">==</span> <span class="dv">0</span> <span class="kw">then</span> <span class="fu">fail</span> <span class="st">&quot;Divide by zero&quot;</span> <span class="kw">else</span> <span class="fu">return</span> <span class="op">$</span> <span class="dt">RNum</span> <span class="op">$</span> a' <span class="ot">`div`</span> b'</span>
-<span id="cb19-23"><a href="#cb19-23"></a></span>
-<span id="cb19-24"><a href="#cb19-24"></a>  lam x (<span class="dt">WithRepr</span> a) <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> <span class="kw">do</span></span>
-<span id="cb19-25"><a href="#cb19-25"></a>    e <span class="ot">&lt;-</span> getEnv</span>
-<span id="cb19-26"><a href="#cb19-26"></a>    <span class="co">-- A closure must remember environment at its point of definition.</span></span>
-<span id="cb19-27"><a href="#cb19-27"></a>    <span class="fu">return</span> <span class="op">$</span> <span class="dt">RAbs</span> e x a </span>
-<span id="cb19-28"><a href="#cb19-28"></a></span>
-<span id="cb19-29"><a href="#cb19-29"></a>  app (<span class="dt">WithRepr</span> f) (<span class="dt">WithRepr</span> a) <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> <span class="kw">do</span></span>
-<span id="cb19-30"><a href="#cb19-30"></a>    <span class="dt">RAbs</span> e x f' <span class="ot">&lt;-</span> f</span>
-<span id="cb19-31"><a href="#cb19-31"></a>    a' <span class="ot">&lt;-</span> a</span>
-<span id="cb19-32"><a href="#cb19-32"></a></span>
-<span id="cb19-33"><a href="#cb19-33"></a>    addr <span class="ot">&lt;-</span> alloc x</span>
-<span id="cb19-34"><a href="#cb19-34"></a>    store addr a'</span>
-<span id="cb19-35"><a href="#cb19-35"></a></span>
-<span id="cb19-36"><a href="#cb19-36"></a>    <span class="co">-- Extend closure's environment with a value for its argument and evaluate it</span></span>
-<span id="cb19-37"><a href="#cb19-37"></a>    withEnv (M.insert x addr e) f'</span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true"></a><span class="kw">instance</span> (<span class="dt">MonadInterpreter</span> m <span class="dt">Repr</span>, <span class="dt">MonadFail</span> m) <span class="ot">=&gt;</span> <span class="dt">Lang</span> (<span class="dt">WithRepr</span> m <span class="dt">Repr</span>) <span class="kw">where</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true"></a>  var x <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> findAddr x <span class="op">&gt;&gt;=</span> readAddr</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true"></a>    </span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true"></a>  num x <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> <span class="fu">return</span> <span class="op">$</span> <span class="dt">RNum</span> x</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true"></a></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true"></a>  if0 (<span class="dt">WithRepr</span> x) (<span class="dt">WithRepr</span> a) (<span class="dt">WithRepr</span> b) <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true"></a>    <span class="dt">RNum</span> x' <span class="ot">&lt;-</span> x</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true"></a>    <span class="co">-- Here a pattern match failure is possible, which is hidden by `MonadFail` instance.</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true"></a>    <span class="co">-- If we were using GADTs, `x` would have type `m (Repr Int)` and the only way to match was to use</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true"></a>    <span class="co">-- RNum constructor and GHC would be happy, but we are not, and so pattern match failure does</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true"></a>    <span class="co">-- not occur solely by our Gentlemen Agreement.</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true"></a>    <span class="co">-- This is equally relevant for every other method in this instance.</span></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true"></a>    <span class="kw">if</span> x' <span class="op">==</span> <span class="dv">0</span> <span class="kw">then</span> a <span class="kw">else</span> b</span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true"></a></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true"></a>  op op' (<span class="dt">WithRepr</span> a) (<span class="dt">WithRepr</span> b) <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true"></a>    <span class="dt">RNum</span> a' <span class="ot">&lt;-</span> a</span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true"></a>    <span class="dt">RNum</span> b' <span class="ot">&lt;-</span> b</span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true"></a>    <span class="kw">case</span> op' <span class="kw">of</span></span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true"></a>      <span class="dt">Plus</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="op">$</span> <span class="dt">RNum</span> <span class="op">$</span> a' <span class="op">+</span> b'</span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true"></a>      <span class="dt">Minus</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="op">$</span> <span class="dt">RNum</span> <span class="op">$</span> a' <span class="op">-</span> b'</span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true"></a>      <span class="dt">Times</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="op">$</span> <span class="dt">RNum</span> <span class="op">$</span> a' <span class="op">*</span> b'</span>
+<span id="cb19-22"><a href="#cb19-22" aria-hidden="true"></a>      <span class="dt">Divide</span> <span class="ot">-&gt;</span> <span class="kw">if</span> b' <span class="op">==</span> <span class="dv">0</span> <span class="kw">then</span> <span class="fu">fail</span> <span class="st">&quot;Divide by zero&quot;</span> <span class="kw">else</span> <span class="fu">return</span> <span class="op">$</span> <span class="dt">RNum</span> <span class="op">$</span> a' <span class="ot">`div`</span> b'</span>
+<span id="cb19-23"><a href="#cb19-23" aria-hidden="true"></a></span>
+<span id="cb19-24"><a href="#cb19-24" aria-hidden="true"></a>  lam x (<span class="dt">WithRepr</span> a) <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb19-25"><a href="#cb19-25" aria-hidden="true"></a>    e <span class="ot">&lt;-</span> getEnv</span>
+<span id="cb19-26"><a href="#cb19-26" aria-hidden="true"></a>    <span class="co">-- A closure must remember environment at its point of definition.</span></span>
+<span id="cb19-27"><a href="#cb19-27" aria-hidden="true"></a>    <span class="fu">return</span> <span class="op">$</span> <span class="dt">RAbs</span> e x a </span>
+<span id="cb19-28"><a href="#cb19-28" aria-hidden="true"></a></span>
+<span id="cb19-29"><a href="#cb19-29" aria-hidden="true"></a>  app (<span class="dt">WithRepr</span> f) (<span class="dt">WithRepr</span> a) <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb19-30"><a href="#cb19-30" aria-hidden="true"></a>    <span class="dt">RAbs</span> e x f' <span class="ot">&lt;-</span> f</span>
+<span id="cb19-31"><a href="#cb19-31" aria-hidden="true"></a>    a' <span class="ot">&lt;-</span> a</span>
+<span id="cb19-32"><a href="#cb19-32" aria-hidden="true"></a></span>
+<span id="cb19-33"><a href="#cb19-33" aria-hidden="true"></a>    addr <span class="ot">&lt;-</span> alloc x</span>
+<span id="cb19-34"><a href="#cb19-34" aria-hidden="true"></a>    store addr a'</span>
+<span id="cb19-35"><a href="#cb19-35" aria-hidden="true"></a></span>
+<span id="cb19-36"><a href="#cb19-36" aria-hidden="true"></a>    <span class="co">-- Extend closure's environment with a value for its argument and evaluate it</span></span>
+<span id="cb19-37"><a href="#cb19-37" aria-hidden="true"></a>    withEnv (M.insert x addr e) f'</span></code></pre></div>
 <p>As you can see, this instance ties <em>any</em> fitting monad with our language. By supplying different monads, we will be able to control the behavior of the interpreter without changing anything in its code.</p>
 <h2 id="making-interpreters">Making interpreters</h2>
 <p>With all that in place, we only need to give an instance of <code>MonadReader</code> and <code>MonadState</code>, and we’ll have an interpreter. The easiest way to obtain these instances is to use monad transformers from the <code>mtl</code> package, but there are other possibilities like the <a href="http://hackage.haskell.org/package/capability">capability</a> library or any of the algebraic effects libraries.</p>
 <p><strong>A simple interpreter</strong></p>
 <p>Let’s write a simple interpreter that evaluates programs to their final values. Just stack transformers in the right order:</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb20-1"><a href="#cb20-1"></a><span class="kw">newtype</span> <span class="dt">RInterpreter</span> a</span>
-<span id="cb20-2"><a href="#cb20-2"></a>  <span class="ot">=</span> <span class="dt">RInterpreter</span></span>
-<span id="cb20-3"><a href="#cb20-3"></a>    {<span class="ot"> getR ::</span> <span class="dt">ReaderT</span> <span class="dt">VarEnv</span> (<span class="dt">MaybeT</span> (<span class="dt">StateT</span> (<span class="dt">ValStore</span> <span class="dt">RInterpreter</span> <span class="dt">Repr</span>) <span class="dt">Identity</span>)) a</span>
-<span id="cb20-4"><a href="#cb20-4"></a>    }</span>
-<span id="cb20-5"><a href="#cb20-5"></a>  <span class="kw">deriving</span> (<span class="dt">Functor</span>, <span class="dt">Applicative</span>, <span class="dt">Monad</span>, <span class="dt">MonadReader</span> <span class="dt">VarEnv</span>, <span class="dt">MonadState</span> (<span class="dt">ValStore</span> <span class="dt">RInterpreter</span> <span class="dt">Repr</span>), <span class="dt">MonadFail</span>)</span>
-<span id="cb20-6"><a href="#cb20-6"></a></span>
-<span id="cb20-7"><a href="#cb20-7"></a><span class="ot">runR ::</span> <span class="dt">RInterpreter</span> a <span class="ot">-&gt;</span> (<span class="dt">Maybe</span> a, <span class="dt">ValStore</span> <span class="dt">RInterpreter</span> <span class="dt">Repr</span>)</span>
-<span id="cb20-8"><a href="#cb20-8"></a>runR <span class="ot">=</span> runIdentity <span class="op">.</span> <span class="fu">flip</span> runStateT <span class="fu">mempty</span> <span class="op">.</span> runMaybeT <span class="op">.</span> <span class="fu">flip</span> runReaderT <span class="fu">mempty</span> <span class="op">.</span> getR</span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true"></a><span class="kw">newtype</span> <span class="dt">RInterpreter</span> a</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true"></a>  <span class="ot">=</span> <span class="dt">RInterpreter</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true"></a>    {<span class="ot"> getR ::</span> <span class="dt">ReaderT</span> <span class="dt">VarEnv</span> (<span class="dt">MaybeT</span> (<span class="dt">StateT</span> (<span class="dt">ValStore</span> <span class="dt">RInterpreter</span> <span class="dt">Repr</span>) <span class="dt">Identity</span>)) a</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true"></a>    }</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true"></a>  <span class="kw">deriving</span> (<span class="dt">Functor</span>, <span class="dt">Applicative</span>, <span class="dt">Monad</span>, <span class="dt">MonadReader</span> <span class="dt">VarEnv</span>, <span class="dt">MonadState</span> (<span class="dt">ValStore</span> <span class="dt">RInterpreter</span> <span class="dt">Repr</span>), <span class="dt">MonadFail</span>)</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true"></a></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true"></a><span class="ot">runR ::</span> <span class="dt">RInterpreter</span> a <span class="ot">-&gt;</span> (<span class="dt">Maybe</span> a, <span class="dt">ValStore</span> <span class="dt">RInterpreter</span> <span class="dt">Repr</span>)</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true"></a>runR <span class="ot">=</span> runIdentity <span class="op">.</span> <span class="fu">flip</span> runStateT <span class="fu">mempty</span> <span class="op">.</span> runMaybeT <span class="op">.</span> <span class="fu">flip</span> runReaderT <span class="fu">mempty</span> <span class="op">.</span> getR</span></code></pre></div>
 <p>With that, we can run our terms:</p>
 <pre><code>&gt; print $ runR $ getInterp @_ @Repr $ t63
 (Just (RNum 63),fromList [])</code></pre>
@@ -275,96 +275,96 @@
 (Just (RNum 46),fromList [(0,RAbs &quot;x&quot;),(1,RNum 42),(2,RNum 42),(3,RNum 44)])</code></pre>
 <p>In the last example we can see all values that end up in the store after the interpretation.</p>
 <p>As in the original paper, if we simply swap <code>MaybeT</code> with <code>StateT</code>, there will be no store output in the case of failure:</p>
-<div class="sourceCode" id="cb24"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb24-1"><a href="#cb24-1"></a><span class="kw">newtype</span> <span class="dt">RInterpreter'</span> a <span class="ot">=</span> <span class="dt">RInterpreter'</span> {<span class="ot"> getR' ::</span> <span class="dt">ReaderT</span> <span class="dt">VarEnv</span> (<span class="dt">StateT</span> (<span class="dt">ValStore</span> <span class="dt">RInterpreter'</span> <span class="dt">Repr</span>) (<span class="dt">MaybeT</span> <span class="dt">Identity</span>)) a }</span>
-<span id="cb24-2"><a href="#cb24-2"></a>  <span class="kw">deriving</span> (<span class="dt">Functor</span>, <span class="dt">Applicative</span>, <span class="dt">Monad</span>, <span class="dt">MonadReader</span> <span class="dt">VarEnv</span>, <span class="dt">MonadState</span> (<span class="dt">ValStore</span> <span class="dt">RInterpreter'</span> <span class="dt">Repr</span>), <span class="dt">MonadFail</span>)</span>
-<span id="cb24-3"><a href="#cb24-3"></a></span>
-<span id="cb24-4"><a href="#cb24-4"></a><span class="ot">runR' ::</span> <span class="dt">RInterpreter'</span> a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> (a, <span class="dt">ValStore</span> <span class="dt">RInterpreter'</span> <span class="dt">Repr</span>)</span>
-<span id="cb24-5"><a href="#cb24-5"></a>runR' <span class="ot">=</span> runIdentity <span class="op">.</span> runMaybeT <span class="op">.</span> <span class="fu">flip</span> runStateT <span class="fu">mempty</span> <span class="op">.</span> <span class="fu">flip</span> runReaderT <span class="fu">mempty</span> <span class="op">.</span> getR'</span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true"></a><span class="kw">newtype</span> <span class="dt">RInterpreter'</span> a <span class="ot">=</span> <span class="dt">RInterpreter'</span> {<span class="ot"> getR' ::</span> <span class="dt">ReaderT</span> <span class="dt">VarEnv</span> (<span class="dt">StateT</span> (<span class="dt">ValStore</span> <span class="dt">RInterpreter'</span> <span class="dt">Repr</span>) (<span class="dt">MaybeT</span> <span class="dt">Identity</span>)) a }</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true"></a>  <span class="kw">deriving</span> (<span class="dt">Functor</span>, <span class="dt">Applicative</span>, <span class="dt">Monad</span>, <span class="dt">MonadReader</span> <span class="dt">VarEnv</span>, <span class="dt">MonadState</span> (<span class="dt">ValStore</span> <span class="dt">RInterpreter'</span> <span class="dt">Repr</span>), <span class="dt">MonadFail</span>)</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true"></a></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true"></a><span class="ot">runR' ::</span> <span class="dt">RInterpreter'</span> a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> (a, <span class="dt">ValStore</span> <span class="dt">RInterpreter'</span> <span class="dt">Repr</span>)</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true"></a>runR' <span class="ot">=</span> runIdentity <span class="op">.</span> runMaybeT <span class="op">.</span> <span class="fu">flip</span> runStateT <span class="fu">mempty</span> <span class="op">.</span> <span class="fu">flip</span> runReaderT <span class="fu">mempty</span> <span class="op">.</span> getR'</span></code></pre></div>
 <pre><code>&gt; print $ runR' $ getInterp @_ @Repr $ tDivZero
 Nothing</code></pre>
 <p><strong>Approximating interpreter</strong></p>
 <p>Now we are ready to make something more interesting — an interpreter that computes an <em>approximation</em> of the target program’s behavior. This is the second example from the paper and it amounts to replacing all results of arithmetic operations with an <em>abstract number</em> (<code>NN</code>).</p>
 <p>For that, we need a new representation type:</p>
-<div class="sourceCode" id="cb26"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb26-1"><a href="#cb26-1"></a><span class="kw">data</span> <span class="dt">NRepr</span> (<span class="ot">m ::</span> <span class="dt">Type</span> <span class="ot">-&gt;</span> <span class="dt">Type</span>) <span class="kw">where</span></span>
-<span id="cb26-2"><a href="#cb26-2"></a>  <span class="dt">NNum</span><span class="ot"> ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">NRepr</span> m</span>
-<span id="cb26-3"><a href="#cb26-3"></a>  <span class="dt">NN</span><span class="ot"> ::</span> <span class="dt">NRepr</span> m</span>
-<span id="cb26-4"><a href="#cb26-4"></a>  <span class="dt">NAbs</span><span class="ot"> ::</span> <span class="dt">VarEnv</span> <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> m (<span class="dt">NRepr</span> m) <span class="ot">-&gt;</span> <span class="dt">NRepr</span> m</span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true"></a><span class="kw">data</span> <span class="dt">NRepr</span> (<span class="ot">m ::</span> <span class="dt">Type</span> <span class="ot">-&gt;</span> <span class="dt">Type</span>) <span class="kw">where</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true"></a>  <span class="dt">NNum</span><span class="ot"> ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">NRepr</span> m</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true"></a>  <span class="dt">NN</span><span class="ot"> ::</span> <span class="dt">NRepr</span> m</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true"></a>  <span class="dt">NAbs</span><span class="ot"> ::</span> <span class="dt">VarEnv</span> <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> m (<span class="dt">NRepr</span> m) <span class="ot">-&gt;</span> <span class="dt">NRepr</span> m</span></code></pre></div>
 <details class="code-details">
 <p><summary>Show instance</summary></p>
-<div class="sourceCode" id="cb27"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb27-1"><a href="#cb27-1"></a><span class="kw">instance</span> <span class="dt">Show</span> (<span class="dt">NRepr</span> m) <span class="kw">where</span></span>
-<span id="cb27-2"><a href="#cb27-2"></a>  <span class="fu">showsPrec</span> p (<span class="dt">NNum</span> n)</span>
-<span id="cb27-3"><a href="#cb27-3"></a>     <span class="ot">=</span> <span class="fu">showParen</span></span>
-<span id="cb27-4"><a href="#cb27-4"></a>         (p <span class="op">&gt;=</span> <span class="dv">11</span>)</span>
-<span id="cb27-5"><a href="#cb27-5"></a>         (<span class="fu">showString</span> <span class="st">&quot;NNum &quot;</span> <span class="op">.</span> <span class="fu">showsPrec</span> <span class="dv">11</span> n)</span>
-<span id="cb27-6"><a href="#cb27-6"></a>  <span class="fu">showsPrec</span> _p_ (<span class="dt">NN</span>)</span>
-<span id="cb27-7"><a href="#cb27-7"></a>     <span class="ot">=</span> <span class="fu">showString</span> <span class="st">&quot;NN&quot;</span></span>
-<span id="cb27-8"><a href="#cb27-8"></a>  <span class="fu">showsPrec</span> p (<span class="dt">NAbs</span> _e x _v)</span>
-<span id="cb27-9"><a href="#cb27-9"></a>     <span class="ot">=</span> <span class="fu">showParen</span></span>
-<span id="cb27-10"><a href="#cb27-10"></a>         (p <span class="op">&gt;=</span> <span class="dv">11</span>)</span>
-<span id="cb27-11"><a href="#cb27-11"></a>         (<span class="fu">showString</span> <span class="st">&quot;NAbs &quot;</span> <span class="op">.</span> <span class="fu">showsPrec</span> <span class="dv">11</span> x)</span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true"></a><span class="kw">instance</span> <span class="dt">Show</span> (<span class="dt">NRepr</span> m) <span class="kw">where</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true"></a>  <span class="fu">showsPrec</span> p (<span class="dt">NNum</span> n)</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true"></a>     <span class="ot">=</span> <span class="fu">showParen</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true"></a>         (p <span class="op">&gt;=</span> <span class="dv">11</span>)</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true"></a>         (<span class="fu">showString</span> <span class="st">&quot;NNum &quot;</span> <span class="op">.</span> <span class="fu">showsPrec</span> <span class="dv">11</span> n)</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true"></a>  <span class="fu">showsPrec</span> _p_ (<span class="dt">NN</span>)</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true"></a>     <span class="ot">=</span> <span class="fu">showString</span> <span class="st">&quot;NN&quot;</span></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true"></a>  <span class="fu">showsPrec</span> p (<span class="dt">NAbs</span> _e x _v)</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true"></a>     <span class="ot">=</span> <span class="fu">showParen</span></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true"></a>         (p <span class="op">&gt;=</span> <span class="dv">11</span>)</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true"></a>         (<span class="fu">showString</span> <span class="st">&quot;NAbs &quot;</span> <span class="op">.</span> <span class="fu">showsPrec</span> <span class="dv">11</span> x)</span></code></pre></div>
 </details>
 <p>and a new instance of <code>Lang</code>. This interpreter will be non-deterministic, returning a list of possible outcomes. We will represent this with an <code>Alternative</code> constraint and a <code>ListT</code> transformer.</p>
 <p>So, define another <code>newtype</code>…</p>
-<div class="sourceCode" id="cb28"><pre class="sourceCode haskell ignore"><code class="sourceCode haskell"><span id="cb28-1"><a href="#cb28-1"></a><span class="kw">newtype</span> <span class="dt">NInterpreter</span> a <span class="ot">=</span> <span class="dt">NInterpreter</span> {<span class="ot"> getN ::</span> <span class="dt">ReaderT</span> <span class="dt">VarEnv</span> (<span class="dt">StateT</span> (<span class="dt">ValStore</span> <span class="dt">NInterpreter</span>) (<span class="dt">MaybeT</span> <span class="dt">Identity</span>)) a }</span>
-<span id="cb28-2"><a href="#cb28-2"></a>  <span class="kw">deriving</span> (<span class="dt">Functor</span>, <span class="dt">Applicative</span>, <span class="dt">Monad</span>, <span class="dt">MonadReader</span> <span class="dt">VarEnv</span>, <span class="dt">MonadState</span> (<span class="dt">ValStore</span> <span class="dt">NInterpreter</span>), <span class="dt">MonadFail</span>, <span class="dt">Alternative</span>)</span>
-<span id="cb28-3"><a href="#cb28-3"></a></span>
-<span id="cb28-4"><a href="#cb28-4"></a><span class="ot">runN ::</span> <span class="dt">RInterpreter'</span> a <span class="ot">-&gt;</span> [(<span class="dt">Maybe</span> a, <span class="dt">ValStore</span> <span class="dt">NInterpreter</span>)]</span>
-<span id="cb28-5"><a href="#cb28-5"></a>runN <span class="ot">=</span> runIdentity <span class="op">.</span> runListT <span class="op">.</span> <span class="fu">flip</span> runStateT <span class="fu">mempty</span> <span class="op">.</span> runMaybeT <span class="op">.</span> <span class="fu">flip</span> runReaderT <span class="fu">mempty</span> <span class="op">.</span> getN</span></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="sourceCode haskell ignore"><code class="sourceCode haskell"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true"></a><span class="kw">newtype</span> <span class="dt">NInterpreter</span> a <span class="ot">=</span> <span class="dt">NInterpreter</span> {<span class="ot"> getN ::</span> <span class="dt">ReaderT</span> <span class="dt">VarEnv</span> (<span class="dt">StateT</span> (<span class="dt">ValStore</span> <span class="dt">NInterpreter</span>) (<span class="dt">MaybeT</span> <span class="dt">Identity</span>)) a }</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true"></a>  <span class="kw">deriving</span> (<span class="dt">Functor</span>, <span class="dt">Applicative</span>, <span class="dt">Monad</span>, <span class="dt">MonadReader</span> <span class="dt">VarEnv</span>, <span class="dt">MonadState</span> (<span class="dt">ValStore</span> <span class="dt">NInterpreter</span>), <span class="dt">MonadFail</span>, <span class="dt">Alternative</span>)</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true"></a></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true"></a><span class="ot">runN ::</span> <span class="dt">RInterpreter'</span> a <span class="ot">-&gt;</span> [(<span class="dt">Maybe</span> a, <span class="dt">ValStore</span> <span class="dt">NInterpreter</span>)]</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true"></a>runN <span class="ot">=</span> runIdentity <span class="op">.</span> runListT <span class="op">.</span> <span class="fu">flip</span> runStateT <span class="fu">mempty</span> <span class="op">.</span> runMaybeT <span class="op">.</span> <span class="fu">flip</span> runReaderT <span class="fu">mempty</span> <span class="op">.</span> getN</span></code></pre></div>
 <p>Unfortunately, this newtype won’t work. GHC derives <code>Alternative</code> instance for <code>NInterpreter</code> from <code>MaybeT</code>, which short-circuits all <code>fail</code>ures. To overcome this, we define our own <code>MaybeT</code>-like transformer with the help of <code>DerivingVia</code>:</p>
-<div class="sourceCode" id="cb29"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb29-1"><a href="#cb29-1"></a><span class="kw">newtype</span> <span class="dt">MT</span> m a <span class="ot">=</span> <span class="dt">MT</span> {<span class="ot"> getMT ::</span> m (<span class="dt">Maybe</span> a) }</span>
-<span id="cb29-2"><a href="#cb29-2"></a>   <span class="kw">deriving</span> (<span class="dt">Functor</span>, <span class="dt">Applicative</span>, <span class="dt">Monad</span>, <span class="dt">MonadFail</span>, <span class="dt">MonadState</span> s) via (<span class="dt">MaybeT</span> m)</span>
-<span id="cb29-3"><a href="#cb29-3"></a></span>
-<span id="cb29-4"><a href="#cb29-4"></a><span class="kw">deriving</span> <span class="kw">instance</span> (<span class="dt">Show</span> a, <span class="dt">Show</span> (m (<span class="dt">Maybe</span> a))) <span class="ot">=&gt;</span> <span class="dt">Show</span> (<span class="dt">MT</span> m a)</span>
-<span id="cb29-5"><a href="#cb29-5"></a></span>
-<span id="cb29-6"><a href="#cb29-6"></a><span class="kw">instance</span> (<span class="dt">Monad</span> m, <span class="dt">Alternative</span> m) <span class="ot">=&gt;</span> <span class="dt">Alternative</span> (<span class="dt">MT</span> m) <span class="kw">where</span></span>
-<span id="cb29-7"><a href="#cb29-7"></a> empty <span class="ot">=</span> <span class="dt">MT</span> <span class="op">$</span> empty</span>
-<span id="cb29-8"><a href="#cb29-8"></a> (<span class="dt">MT</span> x) <span class="op">&lt;|&gt;</span> (<span class="dt">MT</span> y) <span class="ot">=</span> <span class="dt">MT</span> <span class="op">$</span> x <span class="op">&lt;|&gt;</span> y</span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true"></a><span class="kw">newtype</span> <span class="dt">MT</span> m a <span class="ot">=</span> <span class="dt">MT</span> {<span class="ot"> getMT ::</span> m (<span class="dt">Maybe</span> a) }</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true"></a>   <span class="kw">deriving</span> (<span class="dt">Functor</span>, <span class="dt">Applicative</span>, <span class="dt">Monad</span>, <span class="dt">MonadFail</span>, <span class="dt">MonadState</span> s) via (<span class="dt">MaybeT</span> m)</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true"></a></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true"></a><span class="kw">deriving</span> <span class="kw">instance</span> (<span class="dt">Show</span> a, <span class="dt">Show</span> (m (<span class="dt">Maybe</span> a))) <span class="ot">=&gt;</span> <span class="dt">Show</span> (<span class="dt">MT</span> m a)</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true"></a></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true"></a><span class="kw">instance</span> (<span class="dt">Monad</span> m, <span class="dt">Alternative</span> m) <span class="ot">=&gt;</span> <span class="dt">Alternative</span> (<span class="dt">MT</span> m) <span class="kw">where</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true"></a> empty <span class="ot">=</span> <span class="dt">MT</span> <span class="op">$</span> empty</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true"></a> (<span class="dt">MT</span> x) <span class="op">&lt;|&gt;</span> (<span class="dt">MT</span> y) <span class="ot">=</span> <span class="dt">MT</span> <span class="op">$</span> x <span class="op">&lt;|&gt;</span> y</span></code></pre></div>
 <p><code>Alternative</code> instance for <code>MT</code> forwards <code>&lt;|&gt;</code> to underlying monad instead of using <code>Maybe</code> features.</p>
 <p>Now we can use <code>MT</code> to define the actual <code>NInterpreter</code>:</p>
-<div class="sourceCode" id="cb30"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb30-1"><a href="#cb30-1"></a><span class="kw">newtype</span> <span class="dt">NInterpreter</span> a <span class="ot">=</span> <span class="dt">NInterpreter</span> {<span class="ot"> getN ::</span> <span class="dt">ReaderT</span> <span class="dt">VarEnv</span> (<span class="dt">MT</span> (<span class="dt">StateT</span> (<span class="dt">ValStore</span> <span class="dt">NInterpreter</span> <span class="dt">NRepr</span>) (<span class="dt">ListT</span> <span class="dt">Identity</span>))) a }</span>
-<span id="cb30-2"><a href="#cb30-2"></a>  <span class="kw">deriving</span> (<span class="dt">Functor</span>, <span class="dt">Applicative</span>, <span class="dt">Monad</span>, <span class="dt">MonadReader</span> <span class="dt">VarEnv</span>, <span class="dt">MonadState</span> (<span class="dt">ValStore</span> <span class="dt">NInterpreter</span> <span class="dt">NRepr</span>), <span class="dt">MonadFail</span>, <span class="dt">Alternative</span>)</span>
-<span id="cb30-3"><a href="#cb30-3"></a></span>
-<span id="cb30-4"><a href="#cb30-4"></a><span class="ot">runN ::</span> <span class="dt">NInterpreter</span> a <span class="ot">-&gt;</span> [(<span class="dt">Maybe</span> a, <span class="dt">ValStore</span> <span class="dt">NInterpreter</span> <span class="dt">NRepr</span>)]</span>
-<span id="cb30-5"><a href="#cb30-5"></a>runN <span class="ot">=</span> runIdentity <span class="op">.</span> runListT <span class="op">.</span> <span class="fu">flip</span> runStateT <span class="fu">mempty</span> <span class="op">.</span> getMT <span class="op">.</span> <span class="fu">flip</span> runReaderT <span class="fu">mempty</span> <span class="op">.</span> getN</span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true"></a><span class="kw">newtype</span> <span class="dt">NInterpreter</span> a <span class="ot">=</span> <span class="dt">NInterpreter</span> {<span class="ot"> getN ::</span> <span class="dt">ReaderT</span> <span class="dt">VarEnv</span> (<span class="dt">MT</span> (<span class="dt">StateT</span> (<span class="dt">ValStore</span> <span class="dt">NInterpreter</span> <span class="dt">NRepr</span>) (<span class="dt">ListT</span> <span class="dt">Identity</span>))) a }</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true"></a>  <span class="kw">deriving</span> (<span class="dt">Functor</span>, <span class="dt">Applicative</span>, <span class="dt">Monad</span>, <span class="dt">MonadReader</span> <span class="dt">VarEnv</span>, <span class="dt">MonadState</span> (<span class="dt">ValStore</span> <span class="dt">NInterpreter</span> <span class="dt">NRepr</span>), <span class="dt">MonadFail</span>, <span class="dt">Alternative</span>)</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true"></a></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true"></a><span class="ot">runN ::</span> <span class="dt">NInterpreter</span> a <span class="ot">-&gt;</span> [(<span class="dt">Maybe</span> a, <span class="dt">ValStore</span> <span class="dt">NInterpreter</span> <span class="dt">NRepr</span>)]</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true"></a>runN <span class="ot">=</span> runIdentity <span class="op">.</span> runListT <span class="op">.</span> <span class="fu">flip</span> runStateT <span class="fu">mempty</span> <span class="op">.</span> getMT <span class="op">.</span> <span class="fu">flip</span> runReaderT <span class="fu">mempty</span> <span class="op">.</span> getN</span></code></pre></div>
 <p>And, of course, we need a <code>Lang</code> instance for <code>NRepr</code>:</p>
-<div class="sourceCode" id="cb31"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb31-1"><a href="#cb31-1"></a><span class="kw">instance</span> (<span class="dt">MonadInterpreter</span> m <span class="dt">NRepr</span>, <span class="dt">MonadFail</span> m, <span class="dt">Alternative</span> m) <span class="ot">=&gt;</span> <span class="dt">Lang</span> (<span class="dt">WithRepr</span> m <span class="dt">NRepr</span>) <span class="kw">where</span></span>
-<span id="cb31-2"><a href="#cb31-2"></a>  var x <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> findAddr x <span class="op">&gt;&gt;=</span> readAddr</span>
-<span id="cb31-3"><a href="#cb31-3"></a></span>
-<span id="cb31-4"><a href="#cb31-4"></a>  num x <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> <span class="fu">return</span> <span class="op">$</span> <span class="dt">NNum</span> x</span>
-<span id="cb31-5"><a href="#cb31-5"></a></span>
-<span id="cb31-6"><a href="#cb31-6"></a>  if0 (<span class="dt">WithRepr</span> x) (<span class="dt">WithRepr</span> a) (<span class="dt">WithRepr</span> b) <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> <span class="kw">do</span></span>
-<span id="cb31-7"><a href="#cb31-7"></a>    x' <span class="ot">&lt;-</span> x</span>
-<span id="cb31-8"><a href="#cb31-8"></a>    <span class="kw">case</span> x' <span class="kw">of</span></span>
-<span id="cb31-9"><a href="#cb31-9"></a>      <span class="dt">NNum</span> <span class="dv">0</span> <span class="ot">-&gt;</span> a</span>
-<span id="cb31-10"><a href="#cb31-10"></a>      <span class="dt">NNum</span> _ <span class="ot">-&gt;</span> b</span>
-<span id="cb31-11"><a href="#cb31-11"></a>      <span class="dt">NN</span> <span class="ot">-&gt;</span> a <span class="op">&lt;|&gt;</span> b</span>
-<span id="cb31-12"><a href="#cb31-12"></a>      _ <span class="ot">-&gt;</span> <span class="fu">error</span> <span class="st">&quot;Gentlemen Agreement broken&quot;</span></span>
-<span id="cb31-13"><a href="#cb31-13"></a></span>
-<span id="cb31-14"><a href="#cb31-14"></a>  op op' (<span class="dt">WithRepr</span> _a_) (<span class="dt">WithRepr</span> b) <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> <span class="kw">do</span></span>
-<span id="cb31-15"><a href="#cb31-15"></a>    <span class="kw">case</span> op' <span class="kw">of</span></span>
-<span id="cb31-16"><a href="#cb31-16"></a>      <span class="dt">Plus</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="op">$</span> <span class="dt">NN</span></span>
-<span id="cb31-17"><a href="#cb31-17"></a>      <span class="dt">Minus</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="op">$</span> <span class="dt">NN</span></span>
-<span id="cb31-18"><a href="#cb31-18"></a>      <span class="dt">Times</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="op">$</span> <span class="dt">NN</span></span>
-<span id="cb31-19"><a href="#cb31-19"></a>      <span class="dt">Divide</span> <span class="ot">-&gt;</span> <span class="kw">do</span></span>
-<span id="cb31-20"><a href="#cb31-20"></a>        b' <span class="ot">&lt;-</span> b</span>
-<span id="cb31-21"><a href="#cb31-21"></a>        <span class="kw">case</span> b' <span class="kw">of</span></span>
-<span id="cb31-22"><a href="#cb31-22"></a>          <span class="dt">NNum</span> <span class="dv">0</span> <span class="ot">-&gt;</span> <span class="fu">fail</span> <span class="st">&quot;Divide by zero&quot;</span></span>
-<span id="cb31-23"><a href="#cb31-23"></a>          <span class="dt">NNum</span> _ <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="op">$</span> <span class="dt">NN</span></span>
-<span id="cb31-24"><a href="#cb31-24"></a>          <span class="dt">NN</span> <span class="ot">-&gt;</span> <span class="fu">fail</span> <span class="st">&quot;Divide by zero&quot;</span> <span class="op">&lt;|&gt;</span> <span class="fu">return</span> <span class="dt">NN</span></span>
-<span id="cb31-25"><a href="#cb31-25"></a>          _ <span class="ot">-&gt;</span> <span class="fu">error</span> <span class="st">&quot;Gentlemen Agreement broken&quot;</span></span>
-<span id="cb31-26"><a href="#cb31-26"></a></span>
-<span id="cb31-27"><a href="#cb31-27"></a>  lam x (<span class="dt">WithRepr</span> a) <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> <span class="kw">do</span></span>
-<span id="cb31-28"><a href="#cb31-28"></a>    e <span class="ot">&lt;-</span> getEnv</span>
-<span id="cb31-29"><a href="#cb31-29"></a>    <span class="fu">return</span> <span class="op">$</span> <span class="dt">NAbs</span> e x a </span>
-<span id="cb31-30"><a href="#cb31-30"></a></span>
-<span id="cb31-31"><a href="#cb31-31"></a>  app (<span class="dt">WithRepr</span> f) (<span class="dt">WithRepr</span> a) <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> <span class="kw">do</span></span>
-<span id="cb31-32"><a href="#cb31-32"></a>    <span class="dt">NAbs</span> e x f' <span class="ot">&lt;-</span> f</span>
-<span id="cb31-33"><a href="#cb31-33"></a>    a' <span class="ot">&lt;-</span> a</span>
-<span id="cb31-34"><a href="#cb31-34"></a></span>
-<span id="cb31-35"><a href="#cb31-35"></a>    addr <span class="ot">&lt;-</span> alloc x</span>
-<span id="cb31-36"><a href="#cb31-36"></a>    store addr a'</span>
-<span id="cb31-37"><a href="#cb31-37"></a></span>
-<span id="cb31-38"><a href="#cb31-38"></a>    withEnv (M.insert x addr e) f'</span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true"></a><span class="kw">instance</span> (<span class="dt">MonadInterpreter</span> m <span class="dt">NRepr</span>, <span class="dt">MonadFail</span> m, <span class="dt">Alternative</span> m) <span class="ot">=&gt;</span> <span class="dt">Lang</span> (<span class="dt">WithRepr</span> m <span class="dt">NRepr</span>) <span class="kw">where</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true"></a>  var x <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> findAddr x <span class="op">&gt;&gt;=</span> readAddr</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true"></a></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true"></a>  num x <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> <span class="fu">return</span> <span class="op">$</span> <span class="dt">NNum</span> x</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true"></a></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true"></a>  if0 (<span class="dt">WithRepr</span> x) (<span class="dt">WithRepr</span> a) (<span class="dt">WithRepr</span> b) <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true"></a>    x' <span class="ot">&lt;-</span> x</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true"></a>    <span class="kw">case</span> x' <span class="kw">of</span></span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true"></a>      <span class="dt">NNum</span> <span class="dv">0</span> <span class="ot">-&gt;</span> a</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true"></a>      <span class="dt">NNum</span> _ <span class="ot">-&gt;</span> b</span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true"></a>      <span class="dt">NN</span> <span class="ot">-&gt;</span> a <span class="op">&lt;|&gt;</span> b</span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true"></a>      _ <span class="ot">-&gt;</span> <span class="fu">error</span> <span class="st">&quot;Gentlemen Agreement broken&quot;</span></span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true"></a></span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true"></a>  op op' (<span class="dt">WithRepr</span> _a_) (<span class="dt">WithRepr</span> b) <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true"></a>    <span class="kw">case</span> op' <span class="kw">of</span></span>
+<span id="cb31-16"><a href="#cb31-16" aria-hidden="true"></a>      <span class="dt">Plus</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="op">$</span> <span class="dt">NN</span></span>
+<span id="cb31-17"><a href="#cb31-17" aria-hidden="true"></a>      <span class="dt">Minus</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="op">$</span> <span class="dt">NN</span></span>
+<span id="cb31-18"><a href="#cb31-18" aria-hidden="true"></a>      <span class="dt">Times</span> <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="op">$</span> <span class="dt">NN</span></span>
+<span id="cb31-19"><a href="#cb31-19" aria-hidden="true"></a>      <span class="dt">Divide</span> <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb31-20"><a href="#cb31-20" aria-hidden="true"></a>        b' <span class="ot">&lt;-</span> b</span>
+<span id="cb31-21"><a href="#cb31-21" aria-hidden="true"></a>        <span class="kw">case</span> b' <span class="kw">of</span></span>
+<span id="cb31-22"><a href="#cb31-22" aria-hidden="true"></a>          <span class="dt">NNum</span> <span class="dv">0</span> <span class="ot">-&gt;</span> <span class="fu">fail</span> <span class="st">&quot;Divide by zero&quot;</span></span>
+<span id="cb31-23"><a href="#cb31-23" aria-hidden="true"></a>          <span class="dt">NNum</span> _ <span class="ot">-&gt;</span> <span class="fu">return</span> <span class="op">$</span> <span class="dt">NN</span></span>
+<span id="cb31-24"><a href="#cb31-24" aria-hidden="true"></a>          <span class="dt">NN</span> <span class="ot">-&gt;</span> <span class="fu">fail</span> <span class="st">&quot;Divide by zero&quot;</span> <span class="op">&lt;|&gt;</span> <span class="fu">return</span> <span class="dt">NN</span></span>
+<span id="cb31-25"><a href="#cb31-25" aria-hidden="true"></a>          _ <span class="ot">-&gt;</span> <span class="fu">error</span> <span class="st">&quot;Gentlemen Agreement broken&quot;</span></span>
+<span id="cb31-26"><a href="#cb31-26" aria-hidden="true"></a></span>
+<span id="cb31-27"><a href="#cb31-27" aria-hidden="true"></a>  lam x (<span class="dt">WithRepr</span> a) <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb31-28"><a href="#cb31-28" aria-hidden="true"></a>    e <span class="ot">&lt;-</span> getEnv</span>
+<span id="cb31-29"><a href="#cb31-29" aria-hidden="true"></a>    <span class="fu">return</span> <span class="op">$</span> <span class="dt">NAbs</span> e x a </span>
+<span id="cb31-30"><a href="#cb31-30" aria-hidden="true"></a></span>
+<span id="cb31-31"><a href="#cb31-31" aria-hidden="true"></a>  app (<span class="dt">WithRepr</span> f) (<span class="dt">WithRepr</span> a) <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb31-32"><a href="#cb31-32" aria-hidden="true"></a>    <span class="dt">NAbs</span> e x f' <span class="ot">&lt;-</span> f</span>
+<span id="cb31-33"><a href="#cb31-33" aria-hidden="true"></a>    a' <span class="ot">&lt;-</span> a</span>
+<span id="cb31-34"><a href="#cb31-34" aria-hidden="true"></a></span>
+<span id="cb31-35"><a href="#cb31-35" aria-hidden="true"></a>    addr <span class="ot">&lt;-</span> alloc x</span>
+<span id="cb31-36"><a href="#cb31-36" aria-hidden="true"></a>    store addr a'</span>
+<span id="cb31-37"><a href="#cb31-37" aria-hidden="true"></a></span>
+<span id="cb31-38"><a href="#cb31-38" aria-hidden="true"></a>    withEnv (M.insert x addr e) f'</span></code></pre></div>
 <p>And finally we can run it:</p>
 <pre><code>&gt; print $ runN $ getInterp @_ @NRepr $ tDivZero
 [(Nothing,fromList []),(Just NN,fromList [])]</code></pre>
@@ -374,24 +374,24 @@ Nothing</code></pre>
 <p>One of the major advantages of solving the Expression Problem (see <a href="#references">[2]</a> for discussion of) in the Final style is a possibility to extend the language “for free”.</p>
 <p>We chose to omit the recursion from our language to simplify things. Now let’s add it back to our language to see if that advantage holds in our case.</p>
 <p>To do that, we only need to define a subclass to our <code>Lang</code> type class and write an instance for it:</p>
-<div class="sourceCode" id="cb33"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb33-1"><a href="#cb33-1"></a><span class="kw">class</span> <span class="dt">Lang</span> repr <span class="ot">=&gt;</span> <span class="dt">RecLang</span> repr <span class="kw">where</span></span>
-<span id="cb33-2"><a href="#cb33-2"></a><span class="ot">  letrec ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> repr (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> repr (a <span class="ot">-&gt;</span> b)</span>
-<span id="cb33-3"><a href="#cb33-3"></a></span>
-<span id="cb33-4"><a href="#cb33-4"></a><span class="kw">instance</span> (<span class="dt">Monad</span> m, <span class="dt">MonadInterpreter</span> m <span class="dt">Repr</span>, <span class="dt">Lang</span> (<span class="dt">WithRepr</span> m <span class="dt">Repr</span>)) <span class="ot">=&gt;</span> <span class="dt">RecLang</span> (<span class="dt">WithRepr</span> m <span class="dt">Repr</span>) <span class="kw">where</span></span>
-<span id="cb33-5"><a href="#cb33-5"></a>  letrec x (<span class="dt">WithRepr</span> a) <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> <span class="kw">do</span></span>
-<span id="cb33-6"><a href="#cb33-6"></a>    <span class="co">-- This code is a direct translation of Racket code in the paper</span></span>
-<span id="cb33-7"><a href="#cb33-7"></a>    e <span class="ot">&lt;-</span> getEnv</span>
-<span id="cb33-8"><a href="#cb33-8"></a>    addr <span class="ot">&lt;-</span> alloc x</span>
-<span id="cb33-9"><a href="#cb33-9"></a>    <span class="kw">let</span> e' <span class="ot">=</span> M.insert x addr e</span>
-<span id="cb33-10"><a href="#cb33-10"></a>    v <span class="ot">&lt;-</span> withEnv e' a</span>
-<span id="cb33-11"><a href="#cb33-11"></a>    store addr v</span>
-<span id="cb33-12"><a href="#cb33-12"></a>    <span class="fu">return</span> v</span></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true"></a><span class="kw">class</span> <span class="dt">Lang</span> repr <span class="ot">=&gt;</span> <span class="dt">RecLang</span> repr <span class="kw">where</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true"></a><span class="ot">  letrec ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> repr (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> repr (a <span class="ot">-&gt;</span> b)</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true"></a></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true"></a><span class="kw">instance</span> (<span class="dt">Monad</span> m, <span class="dt">MonadInterpreter</span> m <span class="dt">Repr</span>, <span class="dt">Lang</span> (<span class="dt">WithRepr</span> m <span class="dt">Repr</span>)) <span class="ot">=&gt;</span> <span class="dt">RecLang</span> (<span class="dt">WithRepr</span> m <span class="dt">Repr</span>) <span class="kw">where</span></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true"></a>  letrec x (<span class="dt">WithRepr</span> a) <span class="ot">=</span> <span class="dt">WithRepr</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true"></a>    <span class="co">-- This code is a direct translation of Racket code in the paper</span></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true"></a>    e <span class="ot">&lt;-</span> getEnv</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true"></a>    addr <span class="ot">&lt;-</span> alloc x</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true"></a>    <span class="kw">let</span> e' <span class="ot">=</span> M.insert x addr e</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true"></a>    v <span class="ot">&lt;-</span> withEnv e' a</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true"></a>    store addr v</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true"></a>    <span class="fu">return</span> v</span></code></pre></div>
 <p>In this extended language we can define classic factorial function:</p>
-<div class="sourceCode" id="cb34"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb34-1"><a href="#cb34-1"></a><span class="ot">fact ::</span> <span class="dt">RecLang</span> repr <span class="ot">=&gt;</span> repr (<span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span>)</span>
-<span id="cb34-2"><a href="#cb34-2"></a>fact <span class="ot">=</span> letrec <span class="st">&quot;f&quot;</span> <span class="op">$</span> lam <span class="st">&quot;n&quot;</span> (if0 n (num <span class="dv">1</span>) (op <span class="dt">Times</span> n (app f (op <span class="dt">Minus</span> n (num <span class="dv">1</span>)))))</span>
-<span id="cb34-3"><a href="#cb34-3"></a>  <span class="kw">where</span></span>
-<span id="cb34-4"><a href="#cb34-4"></a>    n <span class="ot">=</span> var <span class="st">&quot;n&quot;</span></span>
-<span id="cb34-5"><a href="#cb34-5"></a>    f <span class="ot">=</span> var <span class="st">&quot;f&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb34"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true"></a><span class="ot">fact ::</span> <span class="dt">RecLang</span> repr <span class="ot">=&gt;</span> repr (<span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span>)</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true"></a>fact <span class="ot">=</span> letrec <span class="st">&quot;f&quot;</span> <span class="op">$</span> lam <span class="st">&quot;n&quot;</span> (if0 n (num <span class="dv">1</span>) (op <span class="dt">Times</span> n (app f (op <span class="dt">Minus</span> n (num <span class="dv">1</span>)))))</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true"></a>  <span class="kw">where</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true"></a>    n <span class="ot">=</span> var <span class="st">&quot;n&quot;</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true"></a>    f <span class="ot">=</span> var <span class="st">&quot;f&quot;</span></span></code></pre></div>
 <p>And check that it indeed works:</p>
 <pre><code>&gt; print $ runR $ getInterp @_ @Repr $ app fact (num 5)
 (Just (RNum 120),fromList [(0,RAbs &quot;n&quot;),(1,RNum 5),(2,RNum 4),(3,RNum 3),(4,RNum 2),(5,RNum 1),(6,RNum 0)])</code></pre>

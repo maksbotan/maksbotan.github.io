@@ -1,6 +1,9 @@
 --------------------------------------------------------------------------------
 {-# LANGUAGE OverloadedStrings #-}
-import           Hakyll
+import Data.Functor.Identity (runIdentity)
+import Hakyll
+import Text.Pandoc.Options
+import Text.Pandoc.Templates
 
 
 --------------------------------------------------------------------------------
@@ -22,7 +25,7 @@ main = hakyll $ do
 
     match "posts/*.md" $ do
         route $ setExtension "html"
-        compile $ pandocCompiler
+        compile $ pandocCompilerWith defaultHakyllReaderOptions withTOC
             >>= loadAndApplyTemplate "templates/post.html"    postCtx
             >>= loadAndApplyTemplate "templates/default.html" postCtx
             >>= relativizeUrls
@@ -75,3 +78,11 @@ activeClassField :: Context a
 activeClassField = functionField "activeClass" $ \[p] _ -> do
     path <- toFilePath <$> getUnderlying
     return $ if path == p then "active" else path
+
+withTOC :: WriterOptions
+withTOC = defaultHakyllWriterOptions
+        { writerNumberSections  = False
+        , writerTableOfContents = True
+        , writerTOCDepth        = 3
+        , writerTemplate        = Just (let Right t = runIdentity (compileTemplate "" "$toc$\n$body$") in t)
+        }

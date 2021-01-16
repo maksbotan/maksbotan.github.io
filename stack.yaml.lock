@@ -3,38 +3,10 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages:
-- completed:
-    hackage: hakyll-4.13.3.0@sha256:7d8903f03974691aec049a6188ace8d93457563bad9f078c6faf4c9156e27a33,8867
-    pantry-tree:
-      size: 7841
-      sha256: bdbacc241f680dd0c8d7666c9ec4e7d230dad85172067e106cc35f7c125cd7ab
-  original:
-    hackage: hakyll-4.13.3.0
-- completed:
-    hackage: file-embed-0.0.11.2@sha256:544b15a7de92f1e81e38ae5c3ea3ddc537a3ee9ce89cc3555ef0af420ea57d70,1327
-    pantry-tree:
-      size: 477
-      sha256: b6297f2e5f1d002ba23be2cf3a0984cc40c120c4defb8c031c7ec311651a9e0d
-  original:
-    hackage: file-embed-0.0.11.2
-- completed:
-    hackage: warp-3.2.28@sha256:b32fb8fed7ace4bd206fd897c388c00cdb915ec7e34ee61dc6397d518d9e651c,11186
-    pantry-tree:
-      size: 4227
-      sha256: a08eab2f15d6be431d00cd31a8b87a7e5ce87f203aad06916f9af0c673ec8a7d
-  original:
-    hackage: warp-3.2.28
-- completed:
-    hackage: http2-1.6.5@sha256:f1743ba4a267f525106c218894e4bd2acf28fa047a9ba660b4a317a97382a877,13999
-    pantry-tree:
-      size: 43676
-      sha256: 7c5c74e748187ae08baafab4af661147dcc128f1464305de68a06c3f0949cb91
-  original:
-    hackage: http2-1.6.5
+packages: []
 snapshots:
 - completed:
-    size: 496111
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/15/14.yaml
-    sha256: c442d702d66b8c129b3473a32c609050aabf1dc2f8e8502402c143271a8fb141
-  original: lts-15.14
+    size: 533053
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/16/29.yaml
+    sha256: eb8ccc595466edefb9a679f19aec2e283d12f4c6ea5eefded1ebe8bd157d77d1
+  original: lts-16.29

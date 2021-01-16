@@ -41,6 +41,17 @@
 
 <h1>Abstract definitional interpreters in Haskell: a Final Tagless exercise</h1>
 
+<ul>
+<li><a href="#overview-of-the-paper-and-this-post">Overview of the paper and this post</a></li>
+<li><a href="#a-technical-note">A technical note</a></li>
+<li><a href="#the-target-language-and-its-embedding">The target language and its embedding</a></li>
+<li><a href="#runtime-representation">Runtime representation</a></li>
+<li><a href="#representing-the-interpreter">Representing the interpreter</a></li>
+<li><a href="#making-interpreters">Making interpreters</a></li>
+<li><a href="#extensions">Extensions</a></li>
+<li><a href="#final-thoughts">Final thoughts</a></li>
+<li><a href="#references">References</a></li>
+</ul>
 <p>This post is based on the <em>Abstract Definitional Interpreters</em> paper <a href="#references">[1]</a>. The paper shows how an interpreter for some target language embedded in a meta-language can be turned into an <em>abstract</em> interpreter, which is able to give certain over- and underapproximations of target program behaviors. This interpreter is shown to be total and terminating. We will refer to <a href="#references">[1]</a> as “the ADI paper” from now on.</p>
 <p>The ADI paper represents the target language’s AST as a data type in the meta language (specifically, Racket). The interpreter is defined as a fold over this AST. This approach to language embedding is called <em>initial</em> by some authors.</p>
 <p>Authors then claim that Racket’s module system allows separating the core interpreter and concrete details of its various flavors — for example, the same core is used to implement an evaluator and an approximating interpreter.</p>

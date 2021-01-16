@@ -41,6 +41,17 @@
 
 <h1>Generic validation of nested data</h1>
 
+<ul>
+<li><a href="#tldr">TLDR</a></li>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#about-this-file">About this file</a></li>
+<li><a href="#representation-of-the-validation-process">Representation of the validation process</a></li>
+<li><a href="#writing-validable-instances">Writing <code>Validable</code> instances</a></li>
+<li><a href="#generic-validation">Generic validation</a></li>
+<li><a href="#validation-of-records">Validation of records</a></li>
+<li><a href="#usage-with-aeson">Usage with <code>aeson</code></a></li>
+<li><a href="#conclusion">Conclusion</a></li>
+</ul>
 <h2 id="tldr">TLDR</h2>
 <p>This technique helps validate arbitrary conditions in deeply nested structures without writing additional code — with the help of Haskell Generics.</p>
 <p>It boils down to this pattern:</p>

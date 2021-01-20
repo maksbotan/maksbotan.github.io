@@ -3,7 +3,7 @@ title: Capturing call stack with Haskell exceptions
 ---
 
 Recently I discovered a nice way to capture call stack in Haskell exceptions almost transparently,
-and I'm goint to share it in this post
+and I'm going to share it in this post
 
 If this is a known technique, let me know, otherwise &mdash; enjoy using it.
 
@@ -30,9 +30,9 @@ CallStack (from HasCallStack):
 ```
 
 Obviously, there is an error, but `GHCI` also prints a peculiar thing: a call stack! It contains
-only one entry and isn't helpful though... So you go to
+only one entry and isn't helpful, though... So you go to
 [GHC manual](https://downloads.haskell.org/ghc/latest/docs/html/users_guide/) to see what
-`HasCallStack` the message is talking about and there it is:
+`HasCallStack` the message is talking about, and there it is:
 [`HasCallStack` section](https://downloads.haskell.org/ghc/latest/docs/html/users_guide/glasgow_exts.html#hascallstack).
 
 As the manual says, you add `HasCallStack` constraint to your `foo` and `bar` functions:
@@ -98,14 +98,14 @@ bar :: HasCallStack => [Int] -> [Int] -> Int
 bar a b = foo a + foo b
 ```
 
-You run it and except to see the nice exception with a stack trace. But...
+You run it and expect to see the nice exception with a stack trace. But...
 
 ```haskell
 λ> bar [] []
 *** Exception: FooException
 ```
 
-You get none! What is going on and how `error` is different from
+You get none! What is going on, and how `error` is different from
 [`throw`](http://hackage.haskell.org/package/base-4.14.1.0/docs/Control-Exception.html#v:throw)?
 
 The reason is that exceptions don't capture the stack trace automatically, even when thrown from a
@@ -119,13 +119,13 @@ But what if we want to capture stack with exceptions? One possible way would be 
 (represented as
 [`CallStack`](http://hackage.haskell.org/package/base-4.14.1.0/docs/GHC-Stack.html#t:CallStack)
 type) as part of the exception constructor, then make your custom `throwWithStack :: HasCallStack =>
-Foo -> IO ()` function and use it everywhere, but that is too cumbersome and you may simply forget
+Foo -> IO ()` function and use it everywhere, but that is too cumbersome, and you may just forget
 to use the right throwing function.
 
 Fortunately, there is a better way. Recall that magic `HasCallStack` constraint captures call stack
 from the point where something annotated with it is used. We don't want to annotate `throw`, but
-there is one more thing on the same line &mdash; exception constructor itself! Turns out, you can
-use GADTs to capture stack with a exception data:
+there is one more thing on the same line &mdash; exception constructor itself! It turns out, you can
+use GADTs to capture stack with an exception data:
 
 ```haskell
 data FooException where
@@ -139,6 +139,7 @@ instance Show FooException where
   show FooException = "FooException\n" <> prettyCallStack callStack
 
 deriving anyclass instance Exception FooException
+-- alternatively, derive Show from stock and print call stack in 'displayException' method.
 ```
 
 Here `callStack` is provided by `GHC.Stack` and will use `HasCallStack` constraint introduced by
@@ -173,12 +174,12 @@ coincidence: some later change in GHC may stop GADT pattern match from affecting
 is solved. However, I think that this approach is useful enough and may be used in practice. Just
 don't forget to add enough `HasCallStack` to places which can fail.
 
-Don't forget though that `HasCallStack` is not free and sometimes can break some optimizations,
+Don't forget, though, that `HasCallStack` is not free and sometimes can break some optimizations,
 especially if used in recursive functions (that's the reason `head` & friends do not capture the
 stack).
 
-Of course, this posts does nothing to help debugging builtin exceptions, like `IOError`. For that,
-the usual way is to build with `-prof` and run you code with `+RTS -xc`, as documented in [the
+Of course, this post does nothing to help debugging standard exceptions, like `IOError`. For that,
+the usual way is to build with `-prof` and run your code with `+RTS -xc`, as documented in [the
 manual](https://downloads.haskell.org/ghc/latest/docs/html/users_guide/runtime_control.html#rts-flag--xc).
 
 ## Useful links

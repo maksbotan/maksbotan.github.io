@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="viewport" content="width=device-width" />
+        <meta http-equiv="Cache-Control" content="max-age=86400, must-revalidate" />
+        <title>Maxim Koltsov blog</title>
+        <script src="../css/jquery.js"></script>
+        <script src="../css/selectfile.js"></script>
+        <script src="https://kit.fontawesome.com/88006d875d.js" crossorigin="anonymous"></script>
+        <link rel="stylesheet" type="text/css" title="hakyll_theme" href="../css/theprofessional.css" />
+        <link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+    </head>
+    <body>
+      <div class="highbar">&nbsp;</div>
+        <div id="header">
+          <div class="box">
+            <div id="logo" class="name">
+              <h2><a href="../">Maxim Koltsov</a></h2>
+            </div>
+            <div id="navigation" class="pageslinks">
+              <nav class="menuNav">
+                <div class="menuItems">
+                <a href="../" class="posts/2021-01-20-callstacks.md">Home</a>
+                <a href="../about.html" class="posts/2021-01-20-callstacks.md">About</a>
+                <a href="../contact.html" class="posts/2021-01-20-callstacks.md">Contact</a>
+                <a href="../archive.html" class="posts/2021-01-20-callstacks.md">Posts</a>
+                </div>
+              </nav>
+            </div>
+        </div>
+        </div>
+        <div class="container-gallery">
+        <div id="content" class="inside">
+            <div class="info">
+    Posted on January 20, 2021
+    
+</div>
+
+<h1>Capturing call stack with Haskell exceptions</h1>
+
+<ul>
+<li><a href="#what-is-a-call-stack">What is a call stack</a></li>
+<li><a href="#using-exceptions">Using exceptions</a></li>
+<li><a href="#capturing-stacks">Capturing stacks</a></li>
+<li><a href="#final-remarks">Final remarks</a></li>
+<li><a href="#useful-links">Useful links</a></li>
+</ul>
+<p>Recently I discovered a nice way to capture call stack in Haskell exceptions almost transparently, and I’m going to share it in this post</p>
+<p>If this is a known technique, let me know, otherwise — enjoy using it.</p>
+<h2 id="what-is-a-call-stack">What is a call stack</h2>
+<p>Suppose somewhere in the program you use <code>error</code> to signal an impossible situation:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="ot">foo ::</span> [a] <span class="ot">-&gt;</span> a</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>foo [] <span class="ot">=</span> <span class="fu">error</span> <span class="st">&quot;impossible!&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>foo a<span class="op">:</span>_ <span class="ot">=</span> a</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a><span class="ot">bar ::</span> [<span class="dt">Int</span>] <span class="ot">-&gt;</span> [<span class="dt">Int</span>] <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a>bar a b <span class="ot">=</span> foo a <span class="op">+</span> foo b</span></code></pre></div>
+<p>And then accidentally use it with an empty list:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a>λ<span class="op">&gt;</span> bar [] []</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a><span class="op">***</span> <span class="dt">Exception</span><span class="op">:</span> impossible<span class="op">!</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a><span class="dt">CallStack</span> (from <span class="dt">HasCallStack</span>)<span class="op">:</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a>  <span class="fu">error</span>, called at stacks<span class="op">.</span>hs<span class="op">:</span><span class="dv">4</span><span class="op">:</span><span class="dv">10</span> <span class="kw">in</span> main<span class="op">:</span><span class="dt">Main</span></span></code></pre></div>
+<p>Obviously, there is an error, but <code>GHCI</code> also prints a peculiar thing: a call stack! It contains only one entry and isn’t helpful, though… So you go to <a href="https://downloads.haskell.org/ghc/latest/docs/html/users_guide/">GHC manual</a> to see what <code>HasCallStack</code> the message is talking about, and there it is: <a href="https://downloads.haskell.org/ghc/latest/docs/html/users_guide/glasgow_exts.html#hascallstack"><code>HasCallStack</code> section</a>.</p>
+<p>As the manual says, you add <code>HasCallStack</code> constraint to your <code>foo</code> and <code>bar</code> functions:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="ot">foo ::</span> <span class="dt">HasCallStack</span> <span class="ot">=&gt;</span> [a] <span class="ot">-&gt;</span> a</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>foo [] <span class="ot">=</span> <span class="fu">error</span> <span class="st">&quot;impossible!&quot;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>foo a<span class="op">:</span>_ <span class="ot">=</span> a</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a><span class="ot">bar ::</span> <span class="dt">HasCallStack</span> <span class="ot">=&gt;</span> [<span class="dt">Int</span>] <span class="ot">-&gt;</span> [<span class="dt">Int</span>] <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a>bar a b <span class="ot">=</span> foo a <span class="op">+</span> foo b</span></code></pre></div>
+<p>Now the output becomes much more informative:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a>λ<span class="op">&gt;</span> bar [] []</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a><span class="op">***</span> <span class="dt">Exception</span><span class="op">:</span> impossible<span class="op">!</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a><span class="dt">CallStack</span> (from <span class="dt">HasCallStack</span>)<span class="op">:</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a>  <span class="fu">error</span>, called at stacks<span class="op">.</span>hs<span class="op">:</span><span class="dv">6</span><span class="op">:</span><span class="dv">10</span> <span class="kw">in</span> main<span class="op">:</span><span class="dt">Main</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true"></a>  foo, called at stacks<span class="op">.</span>hs<span class="op">:</span><span class="dv">10</span><span class="op">:</span><span class="dv">11</span> <span class="kw">in</span> main<span class="op">:</span><span class="dt">Main</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true"></a>  bar, called at <span class="op">&lt;</span>interactive<span class="op">&gt;:</span><span class="dv">5</span><span class="op">:</span><span class="dv">1</span> <span class="kw">in</span> interactive<span class="op">:</span><span class="dt">Ghci1</span></span></code></pre></div>
+<p>You get function names, module names and even source locations for all calls starting from the <code>ghci</code> prompt down to the point where <code>error</code> is called.</p>
+<p>Remember, however, that stack is captured only as far from the <code>error</code> call as there are <code>HasCallStack</code> constraint. E.g., dropping the constraint from <code>foo</code> will also exclude <code>bar</code> from the log:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a>λ<span class="op">&gt;</span> bar [] []</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a><span class="op">***</span> <span class="dt">Exception</span><span class="op">:</span> impossible<span class="op">!</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a><span class="dt">CallStack</span> (from <span class="dt">HasCallStack</span>)<span class="op">:</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a>  <span class="fu">error</span>, called at stacks<span class="op">.</span>hs<span class="op">:</span><span class="dv">6</span><span class="op">:</span><span class="dv">10</span> <span class="kw">in</span> main<span class="op">:</span><span class="dt">Main</span></span></code></pre></div>
+<p>Still, you get to know the precise location of the <code>error</code> call, which is nice.</p>
+<p><strong>Caveat</strong>: <code>head</code>, <code>tail</code>, <code>read</code> and so on use <a href="http://hackage.haskell.org/package/base-4.14.1.0/docs/GHC-Err.html#v:errorWithoutStackTrace"><code>errorWithoutStackTrace</code></a> (for performance reasons), so you won’t ever see stack traces from them. One more reason to avoid <code>head</code>!</p>
+<h2 id="using-exceptions">Using exceptions</h2>
+<p>However, using <code>error</code> to report errors is not very convenient: you can pass only a <code>String</code> as an argument and so catching specific errors while propagating others becomes very hard and messy.</p>
+<p>Fortunately, there is another mechanism in GHC for that: exceptions. So you define your custom exception type and throw it from the <code>foo</code> function like this:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="kw">data</span> <span class="dt">FooException</span> <span class="ot">=</span> <span class="dt">FooException</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a>  <span class="kw">deriving</span> (<span class="dt">Show</span>, <span class="dt">Exception</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true"></a><span class="ot">foo ::</span> <span class="dt">HasCallStack</span> <span class="ot">=&gt;</span> [a] <span class="ot">-&gt;</span> a</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true"></a>foo [] <span class="ot">=</span> throw <span class="dt">FooException</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true"></a>foo a<span class="op">:</span>_ <span class="ot">=</span> a</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true"></a><span class="ot">bar ::</span> <span class="dt">HasCallStack</span> <span class="ot">=&gt;</span> [<span class="dt">Int</span>] <span class="ot">-&gt;</span> [<span class="dt">Int</span>] <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true"></a>bar a b <span class="ot">=</span> foo a <span class="op">+</span> foo b</span></code></pre></div>
+<p>You run it and expect to see the nice exception with a stack trace. But…</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a>λ<span class="op">&gt;</span> bar [] []</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a><span class="op">***</span> <span class="dt">Exception</span><span class="op">:</span> <span class="dt">FooException</span></span></code></pre></div>
+<p>You get none! What is going on, and how <code>error</code> is different from <a href="http://hackage.haskell.org/package/base-4.14.1.0/docs/Control-Exception.html#v:throw"><code>throw</code></a>?</p>
+<p>The reason is that exceptions don’t capture the stack trace automatically, even when thrown from a place with <code>HasCallStack</code> context. There is an <a href="https://gitlab.haskell.org/ghc/ghc/-/issues/12096">open issue</a> to do so, reported back in 2016, but no progress was made yet.</p>
+<h2 id="capturing-stacks">Capturing stacks</h2>
+<p>But what if we want to capture stack with exceptions? One possible way would be to save the stack (represented as <a href="http://hackage.haskell.org/package/base-4.14.1.0/docs/GHC-Stack.html#t:CallStack"><code>CallStack</code></a> type) as part of the exception constructor, then make your custom <code>throwWithStack :: HasCallStack =&gt; Foo -&gt; IO ()</code> function and use it everywhere, but that is too cumbersome, and you may just forget to use the right throwing function.</p>
+<p>Fortunately, there is a better way. Recall that magic <code>HasCallStack</code> constraint captures call stack from the point where something annotated with it is used. We don’t want to annotate <code>throw</code>, but there is one more thing on the same line — exception constructor itself! It turns out, you can use GADTs to capture stack with an exception data:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="kw">data</span> <span class="dt">FooException</span> <span class="kw">where</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a>  <span class="dt">FooException</span><span class="ot"> ::</span> <span class="dt">HasCallStack</span> <span class="ot">=&gt;</span> <span class="dt">FooException</span></span></code></pre></div>
+<p>And then access it in <code>Show</code> instance:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="kw">instance</span> <span class="dt">Show</span> <span class="dt">FooException</span> <span class="kw">where</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a>  <span class="fu">show</span> <span class="dt">FooException</span> <span class="ot">=</span> <span class="st">&quot;FooException\n&quot;</span> <span class="op">&lt;&gt;</span> prettyCallStack callStack</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a><span class="kw">deriving</span> anyclass <span class="kw">instance</span> <span class="dt">Exception</span> <span class="dt">FooException</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true"></a><span class="co">-- alternatively, derive Show from stock and print call stack in 'displayException' method.</span></span></code></pre></div>
+<p>Here <code>callStack</code> is provided by <code>GHC.Stack</code> and will use <code>HasCallStack</code> constraint introduced by pattern match on <code>FooException</code> GADT constructor.</p>
+<p>Let’s see an example of how it works:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a>λ<span class="op">&gt;</span> bar [] []</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a><span class="op">***</span> <span class="dt">Exception</span><span class="op">:</span> <span class="dt">FooException</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a><span class="dt">CallStack</span> (from <span class="dt">HasCallStack</span>)<span class="op">:</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true"></a>  <span class="dt">FooException</span>, called at stacks<span class="op">.</span>hs<span class="op">:</span><span class="dv">18</span><span class="op">:</span><span class="dv">16</span> <span class="kw">in</span> main<span class="op">:</span><span class="dt">Main</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true"></a>  foo, called at stacks<span class="op">.</span>hs<span class="op">:</span><span class="dv">22</span><span class="op">:</span><span class="dv">11</span> <span class="kw">in</span> main<span class="op">:</span><span class="dt">Main</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true"></a>  bar, called at <span class="op">&lt;</span>interactive<span class="op">&gt;:</span><span class="dv">7</span><span class="op">:</span><span class="dv">1</span> <span class="kw">in</span> interactive<span class="op">:</span><span class="dt">Ghci1</span></span></code></pre></div>
+<p>For another example, here is a real call stack I reproduced in our production code:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="dt">Exception</span><span class="op">:</span> <span class="dt">Operation</span> timeout</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a><span class="dt">CallStack</span> (from <span class="dt">HasCallStack</span>)<span class="op">:</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true"></a>  <span class="dt">TimeOut</span>, called at src<span class="op">/</span><span class="dt">Database</span><span class="op">/</span><span class="dt">Bolt</span><span class="op">/</span>Connection.hs<span class="op">:</span><span class="dv">38</span><span class="op">:</span><span class="dv">36</span> <span class="kw">in</span> hasbolt<span class="op">-</span><span class="fl">0.1</span><span class="op">.</span><span class="fl">4.3</span><span class="op">-</span>inplace<span class="op">:</span><span class="dt">Database.Bolt.Connection</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true"></a>  run, called at src<span class="op">/</span><span class="dt">XXX</span><span class="op">/</span><span class="dt">DB</span><span class="op">/</span>Impl.hs<span class="op">:</span><span class="dv">42</span><span class="op">:</span><span class="dv">43</span> <span class="kw">in</span> xxx<span class="op">-</span><span class="fl">0.3</span><span class="op">.</span><span class="fl">5.0</span><span class="op">-</span>inplace<span class="op">:</span><span class="dt">XXX.DB.Impl</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true"></a>  runDB, called at src<span class="op">/</span><span class="dt">XXX</span><span class="op">/</span><span class="dt">DB</span><span class="op">/</span>Impl.hs<span class="op">:</span><span class="dv">124</span><span class="op">:</span><span class="dv">14</span> <span class="kw">in</span> xxx<span class="op">-</span><span class="fl">0.3</span><span class="op">.</span><span class="fl">5.0</span><span class="op">-</span>inplace<span class="op">:</span><span class="dt">XXX.DB.Impl</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true"></a>  programs, called at src<span class="op">/</span><span class="dt">XXX</span><span class="op">/</span><span class="dt">API</span><span class="op">/</span>Program.hs<span class="op">:</span><span class="dv">33</span><span class="op">:</span><span class="dv">17</span> <span class="kw">in</span> xxx<span class="op">-</span><span class="fl">0.3</span><span class="op">.</span><span class="fl">5.0</span><span class="op">-</span>inplace<span class="op">:</span><span class="dt">XXX.API.Program</span></span></code></pre></div>
+<h2 id="final-remarks">Final remarks</h2>
+<p><code>HasCallStack</code> is a magic constraint, so the fact that this trick works may or may not be a coincidence: some later change in GHC may stop GADT pattern match from affecting how <code>HasCallStack</code> is solved. However, I think that this approach is useful enough and may be used in practice. Just don’t forget to add enough <code>HasCallStack</code> to places which can fail.</p>
+<p>Don’t forget, though, that <code>HasCallStack</code> is not free and sometimes can break some optimizations, especially if used in recursive functions (that’s the reason <code>head</code> &amp; friends do not capture the stack).</p>
+<p>Of course, this post does nothing to help debugging standard exceptions, like <code>IOError</code>. For that, the usual way is to build with <code>-prof</code> and run your code with <code>+RTS -xc</code>, as documented in <a href="https://downloads.haskell.org/ghc/latest/docs/html/users_guide/runtime_control.html#rts-flag--xc">the manual</a>.</p>
+<h2 id="useful-links">Useful links</h2>
+<ul>
+<li><a href="https://downloads.haskell.org/ghc/latest/docs/html/users_guide/glasgow_exts.html#hascallstack">GHC manual on call stacks</a></li>
+<li><a href="https://downloads.haskell.org/ghc/latest/docs/html/users_guide/glasgow_exts.html#hascallstack">GHC manual on stacks from profile build</a></li>
+<li><a href="http://hackage.haskell.org/package/base-4.14.1.0/docs/GHC-Stack.html">Haddock for <code>GHC.Stack</code></a></li>
+<li><a href="https://gitlab.haskell.org/ghc/ghc/-/issues/12096">Issue to add call stacks to exceptions</a></li>
+<li><a href="https://github.com/bgamari/ghc-proposals/blob/stacktraces/proposals/0000-exception-backtraces.rst">GHC Proposal for that</a></li>
+<li><a href="https://www.well-typed.com/blog/2020/04/dwarf-1/">Using DWARF debug information in GHC</a></li>
+</ul>
+
+        </div>
+        </div>
+        <div id="footer">
+          <div class="inside">
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>.
+            This theme was designed by <a href="http://twitter.com/katychuang">Dr. Kat</a> and showcased in the <a href="http://katychuang.com/hakyll-cssgarden/gallery/">Hakyll-CSSGarden</a>
+          </div>
+        </div>
+    </body>
+</html>
